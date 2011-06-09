@@ -85,7 +85,15 @@ IdName ip_protos[] = {
     { -1,              NULL }
 };
 
+#ifndef environ
+# ifdef __APPLE__
+#  include <crt_externs.h>
+#  define environ (*_NSGetEnviron())
+# else
 extern char **environ;
+# endif
+#endif
+
 Context *get_sixjack_context(void);
 void free_sixjack_context(void);
 Filter *get_filter(void);
