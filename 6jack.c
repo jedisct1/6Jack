@@ -81,7 +81,7 @@ IdName ip_protos[] = {
 };
 
 extern char **environ;
-Context context;
+static Context sixjack_context;
 
 int upipe_init(Upipe * const upipe)
 {
@@ -273,13 +273,10 @@ msgpack_unpacked receive_message_from_filter(Filter * const filter)
     return message;
 }
 
-int socket_parse_filter_reply(Filter * const filter, int * const ret,
-                              int * const ret_errno)
+int parse_common_reply_map(const msgpack_object_map * const map,
+                           int * const ret, int * const ret_errno,
+                           const int fd)
 {
-    msgpack_unpacked message;    
-    message = receive_message_from_filter(filter);
-    
-    const msgpack_object_map * const map = &message.data.via.map;    
     const msgpack_object * const obj_version =
         msgpack_get_map_value_for_key(map, "version");
     assert(obj_version != NULL);
@@ -306,21 +303,42 @@ int socket_parse_filter_reply(Filter * const filter, int * const ret,
         *ret_errno = new_ret_errno;
     }
     
+    const msgpack_object * const obj_force_close =
+        msgpack_get_map_value_for_key(map, "force_close");
+    if (obj_force_close != NULL) {
+        assert(obj_force_close->type == MSGPACK_OBJECT_BOOLEAN);
+        const bool force_close = obj_force_close->via.boolean;
+        if (force_close == 1) {
+            close(fd);
+        }
+    }
+    
+    return 0;
+}
+
+int socket_parse_filter_reply(Filter * const filter, int * const ret,
+                              int * const ret_errno, const int fd)
+{
+    msgpack_unpacked message = receive_message_from_filter(filter);
+    const msgpack_object_map * const map = &message.data.via.map;
+    
+    parse_common_reply_map(map, ret, ret_errno, fd);
+    
     msgpack_unpacked_destroy(&message);
 
     return 0;
 }
 
-int before_apply_filter(const int ret, const int ret_errno,
+int before_apply_filter(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function)
 {
-    Filter * const filter = &context.filter;
+    Filter * const filter = &sixjack_context.filter;
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    msgpack_pack_map(msgpack_packer, nongeneric_items + 4U);
+    msgpack_pack_map(msgpack_packer, nongeneric_items + 5U);
     
     msgpack_pack_mstring(msgpack_packer, "version");
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
@@ -333,6 +351,9 @@ int before_apply_filter(const int ret, const int ret_errno,
     
     msgpack_pack_mstring(msgpack_packer, "errno");
     msgpack_pack_int(msgpack_packer, ret_errno);
+
+    msgpack_pack_mstring(msgpack_packer, "fd");
+    msgpack_pack_int(msgpack_packer, fd);
     
     return 0;
 }
@@ -341,13 +362,10 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
                         const int domain, const int type,
                         const int protocol)
 {
-    Filter * const filter = &context.filter;
+    Filter * const filter = &sixjack_context.filter;
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
-    
-    before_apply_filter(*ret, *ret_errno, 4U, "socket");
-    
-    msgpack_pack_mstring(msgpack_packer, "fd");
-    msgpack_pack_int(msgpack_packer, *ret);
+    const int fd = *ret;    
+    before_apply_filter(*ret, *ret_errno, fd, 3U, "socket");    
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
     const char * const domain_name = find_name_from_id(pf_domains, domain);
@@ -364,13 +382,13 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
     if (send_message_to_filter(filter) != 0) {
         return -1;
     }    
-    return socket_parse_filter_reply(filter, ret, ret_errno);
+    return socket_parse_filter_reply(filter, ret, ret_errno, fd);
 }
 
 int socket(int domain, int type, int protocol)
 {
     static int (* __real_socket)(int domain, int type, int protocol);
-    
+
     if (__real_socket == NULL) {
         __real_socket = dlsym(RTLD_NEXT, "socket");
         assert(__real_socket != NULL);        
@@ -385,10 +403,10 @@ int socket(int domain, int type, int protocol)
 
 int main(void)
 {
-    Filter * const filter = &context.filter;
+    Filter * const filter = &sixjack_context.filter;
     int ret;
     pid_t pid = (pid_t) 0;
-    char *argv[] = { "a", NULL };
+    char *argv[] = { "6jack-filter", NULL };
 
     upipe_init(&filter->upipe_stdin);
     upipe_init(&filter->upipe_stdout);
