@@ -49,8 +49,12 @@ IdName pf_domains[] = {
     { PF_ROUTE,  "PF_ROUTE" },
     { PF_KEY,    "PF_KEY" },
     { PF_INET6,  "PF_INET6" },
-    { PF_SYSTEM, "PF_SYSTEM" },    
+#ifdef PF_SYSTEM
+    { PF_SYSTEM, "PF_SYSTEM" },
+#endif
+#ifdef PF_NDRV
     { PF_NDRV,   "PF_NDRV" },
+#endif
     { -1,        NULL }
 };
 
@@ -81,7 +85,9 @@ IdName ip_protos[] = {
     { IPPROTO_DSTOPTS, "IPPROTO_DSTOPTS" },
     { IPPROTO_IPCOMP,  "IPPROTO_IPCOMP" },
     { IPPROTO_PIM,     "IPPROTO_PIM" },
+#ifdef IPPROTO_PGM
     { IPPROTO_PGM,     "IPPROTO_PGM" },
+#endif
     { -1,              NULL }
 };
 
@@ -403,7 +409,7 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
 int socket(int domain, int type, int protocol)
 {
     static int (* __real_socket)(int domain, int type, int protocol);
-
+    
     if (__real_socket == NULL) {
         __real_socket = dlsym(RTLD_NEXT, "socket");
         assert(__real_socket != NULL);        
