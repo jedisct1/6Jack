@@ -1,5 +1,6 @@
 AC_PREREQ(2.61)
 AC_INIT(6jack, 0.1, bugs at pureftpd dot org)
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([src/6jack.c])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([1.9 dist-bzip2])
@@ -13,7 +14,7 @@ AC_SUBST(ISODATE)
 AC_PROG_CC_C99
 AC_USE_SYSTEM_EXTENSIONS
 CPPFLAGS="$CPPFLAGS -D_XPG4_2=1"
-AC_PROG_RANLIB
+AC_PROG_LIBTOOL
 
 if test -d /usr/local/include; then
   CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -29,7 +30,8 @@ AC_CHECK_LIB([msgpack], [msgpack_pack_raw_body])
 # Checks for header files.
 AC_SYS_LARGEFILE
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([limits.h stdint.h stdlib.h unistd.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h])
+AC_CHECK_HEADERS([sys/socket.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -41,10 +43,10 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINT32_T
-AC_TYPE_SIGNAL
 AC_TYPE_INTPTR_T
 AC_TYPE_UINTPTR_T
 AC_TYPE_UINT32_T
+AC_TYPE_SIGNAL
 AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
