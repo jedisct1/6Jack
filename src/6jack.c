@@ -8,6 +8,8 @@
 #include <poll.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <limits.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -415,7 +417,7 @@ Context *get_sixjack_context(void)
     
     Filter * const filter = &context.filter;
     int ret;
-    char *argv[] = { "6jack-filter", NULL };
+    char *argv[] = { (char *) "6jack-filter", NULL };
 
     upipe_init(&filter->upipe_stdin);
     upipe_init(&filter->upipe_stdout);
@@ -472,12 +474,4 @@ void free_sixjack_context(void)
     filter->msgpack_unpacker = NULL;
     
     context->initialized = 0;
-}
-
-int main(void)
-{
-    socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);    
-
-    return 0;
 }
