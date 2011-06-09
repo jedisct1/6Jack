@@ -85,6 +85,7 @@ IdName ip_protos[] = {
 
 extern char **environ;
 Context *get_sixjack_context(void);
+void free_sixjack_context(void);
 Filter *get_filter(void);
 
 int upipe_init(Upipe * const upipe)
@@ -448,6 +449,7 @@ Context *get_sixjack_context(void)
                                                 msgpack_sbuffer_write);
     filter->msgpack_unpacker = msgpack_unpacker_new(FILTER_UNPACK_BUFFER_SIZE);
     context.initialized = 1;
+    atexit(free_sixjack_context);
     
     return &context;
 }
@@ -476,7 +478,6 @@ int main(void)
 {
     socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);    
-    free_sixjack_context();
 
     return 0;
 }
