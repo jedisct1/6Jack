@@ -100,6 +100,12 @@ extern char **environ;
 # endif
 #endif
 
+#ifdef USE_INTERPOSERS
+# define INTERPOSE(F) interposed_ ## F
+#else
+# define INTERPOSE(F) F
+#endif
+
 Context *get_sixjack_context(void);
 void free_sixjack_context(void);
 Filter *get_filter(void);
@@ -406,7 +412,7 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
     return socket_parse_filter_reply(filter, ret, ret_errno, fd);
 }
 
-int socket(int domain, int type, int protocol)
+int INTERPOSE(socket)(int domain, int type, int protocol)
 {
     static int (* __real_socket)(int domain, int type, int protocol);
     
@@ -455,7 +461,7 @@ Context *get_sixjack_context(void)
     if (ret != 0) {
         errno = ret;
         perror("posix_spawn");
-        return NULL;
+        exit(1);
     }
     printf("Child = %u\n", (unsigned int) filter->pid);
         
