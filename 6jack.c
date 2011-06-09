@@ -85,6 +85,7 @@ IdName ip_protos[] = {
 
 extern char **environ;
 Context *get_sixjack_context(void);
+Filter *get_filter(void);
 
 int upipe_init(Upipe * const upipe)
 {
@@ -336,7 +337,7 @@ int before_apply_filter(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function)
 {
-    Filter * const filter = &get_sixjack_context()->filter;
+    Filter * const filter = get_filter();
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
@@ -365,7 +366,7 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
                         const int domain, const int type,
                         const int protocol)
 {
-    Filter * const filter = &get_sixjack_context()->filter;
+    Filter * const filter = get_filter();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
     before_apply_filter(*ret, *ret_errno, fd, 3U, "socket");    
@@ -451,6 +452,11 @@ Context *get_sixjack_context(void)
     return &context;
 }
 
+Filter *get_filter(void)
+{
+    return &get_sixjack_context()->filter;
+}
+
 void free_sixjack_context(void)
 {
     Context * const context = get_sixjack_context();
@@ -468,11 +474,8 @@ void free_sixjack_context(void)
 
 int main(void)
 {
-    get_sixjack_context();
-    
     socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-    
+    socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);    
     free_sixjack_context();
 
     return 0;
