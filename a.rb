@@ -6,7 +6,11 @@ require "awesome_print"
 pac = MessagePack::Unpacker.new
 xxx = 0
 loop do
-  data = STDIN.readpartial(65536)
+  begin
+    data = STDIN.readpartial(65536)
+  rescue EOFError
+    break
+  end
   warn "Ruby len=#{data.length}"
   pac.feed(data)
   obj = { version: 1, return_code: 45, yop: 45 }  

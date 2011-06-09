@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <limits.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #define VERSION_MAJOR 1
 #define FILTER_READ_BUFFER_SIZE   MSGPACK_UNPACKER_INIT_BUFFER_SIZE
@@ -26,9 +27,11 @@ typedef struct Filter_ {
     msgpack_sbuffer *msgpack_sbuffer;
     msgpack_packer *msgpack_packer;
     msgpack_unpacker *msgpack_unpacker;
+    pid_t pid;
 } Filter;
 
 typedef struct Context_ {
+    bool initialized;
     Filter filter;
 } Context;
 
@@ -81,7 +84,7 @@ IdName ip_protos[] = {
 };
 
 extern char **environ;
-static Context sixjack_context;
+Context *get_sixjack_context(void);
 
 int upipe_init(Upipe * const upipe)
 {
@@ -308,7 +311,7 @@ int parse_common_reply_map(const msgpack_object_map * const map,
     if (obj_force_close != NULL) {
         assert(obj_force_close->type == MSGPACK_OBJECT_BOOLEAN);
         const bool force_close = obj_force_close->via.boolean;
-        if (force_close == 1) {
+        if (force_close != 0) {
             close(fd);
         }
     }
@@ -333,7 +336,7 @@ int before_apply_filter(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function)
 {
-    Filter * const filter = &sixjack_context.filter;
+    Filter * const filter = &get_sixjack_context()->filter;
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
@@ -362,7 +365,7 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
                         const int domain, const int type,
                         const int protocol)
 {
-    Filter * const filter = &sixjack_context.filter;
+    Filter * const filter = &get_sixjack_context()->filter;
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
     before_apply_filter(*ret, *ret_errno, fd, 3U, "socket");    
@@ -401,11 +404,15 @@ int socket(int domain, int type, int protocol)
     return ret;
 }
 
-int main(void)
+Context *get_sixjack_context(void)
 {
-    Filter * const filter = &sixjack_context.filter;
+    static Context context;
+    if (context.initialized != 0) {
+        return &context;
+    }
+    
+    Filter * const filter = &context.filter;
     int ret;
-    pid_t pid = (pid_t) 0;
     char *argv[] = { "6jack-filter", NULL };
 
     upipe_init(&filter->upipe_stdin);
@@ -425,24 +432,29 @@ int main(void)
                                       filter->upipe_stdout.fd_read);
     posix_spawn_file_actions_addclose(&file_actions,
                                       filter->upipe_stdout.fd_write);
-    ret = posix_spawn(&pid, "./a.rb", &file_actions, NULL, argv, environ);
+    ret = posix_spawn(&filter->pid, "./a.rb",
+                      &file_actions, NULL, argv, environ);
     if (ret != 0) {
         errno = ret;
         perror("posix_spawn");
-        return 1;
+        return NULL;
     }
+    printf("Child = %u\n", (unsigned int) filter->pid);
+        
     posix_spawn_file_actions_destroy(&file_actions);    
     filter->msgpack_sbuffer = msgpack_sbuffer_new();
     filter->msgpack_packer = msgpack_packer_new(filter->msgpack_sbuffer,
                                                 msgpack_sbuffer_write);
     filter->msgpack_unpacker = msgpack_unpacker_new(FILTER_UNPACK_BUFFER_SIZE);
+    context.initialized = 1;
     
-    socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    return &context;
+}
 
-    printf("Child = %u\n", (unsigned int) pid);
-    int st;
-    waitpid(pid, &st, 0);
+void free_sixjack_context(void)
+{
+    Context * const context = get_sixjack_context();
+    Filter * const filter = &context->filter;
 
     msgpack_sbuffer_free(filter->msgpack_sbuffer);
     filter->msgpack_sbuffer = NULL;
@@ -451,5 +463,17 @@ int main(void)
     msgpack_unpacker_free(filter->msgpack_unpacker);
     filter->msgpack_unpacker = NULL;
     
+    context->initialized = 0;
+}
+
+int main(void)
+{
+    get_sixjack_context();
+    
+    socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+    
+    free_sixjack_context();
+
     return 0;
 }
