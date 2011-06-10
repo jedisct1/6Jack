@@ -58,7 +58,7 @@ Context *sixjack_get_context(void)
 
 void sixjack_free_context(void)
 {
-    Context * const context = get_sixjack_context();
+    Context * const context = sixjack_get_context();
     Filter * const filter = &context->filter;
 
     if (filter->msgpack_sbuffer != NULL) {
