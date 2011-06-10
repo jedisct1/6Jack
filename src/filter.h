@@ -23,7 +23,8 @@ Filter *filter_get(void);
 
 int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
-                        const char * const function);
+                        const char * const function,
+                        const bool include_net_info);
 
 int filter_send_message(Filter * const filter);
 

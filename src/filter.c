@@ -30,7 +30,7 @@ msgpack_unpacked *filter_receive_message(Filter * const filter)
     msgpack_unpacked * const message = &filter->message;
     
     ssize_t readnb;    
-    while (msgpack_unpacker_next(msgpack_unpacker, message) <= 0) {
+    while (msgpack_unpacker_next(msgpack_unpacker, message) == false) {
         assert(msgpack_unpacker_buffer_capacity(msgpack_unpacker) > 0U);
         readnb = safe_read_partial
             (filter->upipe_stdout.fd_read,
@@ -84,7 +84,7 @@ int filter_parse_common_reply_map(const msgpack_object_map * const map,
     if (obj_force_close != NULL) {
         assert(obj_force_close->type == MSGPACK_OBJECT_BOOLEAN);
         const bool force_close = obj_force_close->via.boolean;
-        if (force_close != 0) {
+        if (force_close != false) {
             close(fd);
         }
     }
@@ -94,7 +94,8 @@ int filter_parse_common_reply_map(const msgpack_object_map * const map,
 
 int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
-                        const char * const function)
+                        const char * const function,
+                        const bool include_net_info)
 {
     Filter * const filter = filter_get();
     assert(filter->msgpack_packer != NULL);
@@ -120,6 +121,8 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
 
     msgpack_pack_mstring(msgpack_packer, "fd");
     msgpack_pack_int(msgpack_packer, fd);
+    
+    assert(include_net_info == 0);
     
     return 0;
 }
