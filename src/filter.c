@@ -101,10 +101,13 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    msgpack_pack_map(msgpack_packer, nongeneric_items + 5U);
+    msgpack_pack_map(msgpack_packer, nongeneric_items + 6U);
     
     msgpack_pack_mstring(msgpack_packer, "version");
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
+    
+    msgpack_pack_mstring(msgpack_packer, "pid");
+    msgpack_pack_unsigned_int(msgpack_packer, filter->pid);
     
     msgpack_pack_mstring(msgpack_packer, "function");
     msgpack_pack_cstring(msgpack_packer, function);
