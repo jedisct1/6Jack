@@ -4,7 +4,6 @@
 #include "msgpack-extensions.h"
 #include "id-name.h"
 #include "filter.h"
-#include "hooks.h"
 
 AppContext *sixjack_get_context(void)
 {
@@ -87,11 +86,3 @@ void sixjack_free_context(void)
     
     context->initialized = 0;
 }
-
-#ifdef USE_INTERPOSERS
-DLL_PUBLIC const struct { void *hook_func; void *real_func; }
-sixjack_interposers[] __attribute__ ((section("__DATA, __interpose"))) = {
-    { INTERPOSE(socket), socket }
-};
-#endif
-

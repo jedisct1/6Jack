@@ -76,4 +76,6 @@ typedef struct AppContext_ {
 AppContext *sixjack_get_context(void);
 void sixjack_free_context(void);
 
+#include "hooks.h"
+
 #endif

@@ -1,7 +1,7 @@
 
 lib_LTLIBRARIES = \
         lib6jack.la
-        
+
 lib6jack_la_SOURCES = \
         common.h \
         app.c \
@@ -17,7 +17,8 @@ lib6jack_la_SOURCES = \
         filter.c \
         hooks.h \
         hook-socket.h \
-        hook-socket.c
+        hook-socket.c \
+        interpose.c
 
 lib6jack_la_LDFLAGS = \
         $(AM_LDFLAGS) \
