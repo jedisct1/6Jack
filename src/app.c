@@ -4,16 +4,20 @@
 #include "msgpack-extensions.h"
 #include "id-name.h"
 #include "filter.h"
-#include "6jack.h"
 
-Context *sixjack_get_context(void)
+AppContext *sixjack_get_context(void)
 {
-    static Context context;
+    static AppContext context;
+    
     if (context.initialized != 0) {
         return &context;
     }
-    
-    Filter * const filter = &context.filter;
+    context.log_fd = -1;
+    Filter * const filter = malloc(sizeof context.filter);
+    if (filter == NULL) {
+        return NULL;
+    }
+    context.filter = filter;
     int ret;
     char *argv[] = { (char *) "example-filter", NULL };
 
@@ -58,9 +62,10 @@ Context *sixjack_get_context(void)
 
 void sixjack_free_context(void)
 {
-    Context * const context = sixjack_get_context();
-    Filter * const filter = &context->filter;
-
+    AppContext * const context = sixjack_get_context();
+    Filter * const filter = context->filter;
+    assert(filter != NULL);
+    
     if (filter->msgpack_sbuffer != NULL) {
         msgpack_sbuffer_free(filter->msgpack_sbuffer);
         filter->msgpack_sbuffer = NULL;
@@ -71,6 +76,13 @@ void sixjack_free_context(void)
     }
     msgpack_unpacker_destroy(&filter->msgpack_unpacker);   
     msgpack_unpacked_destroy(&filter->message);
+    
+    if (context->log_fd != -1) {
+        close(context->log_fd);
+        context->log_fd = -1;
+    }
+    free(context->filter);
+    context->filter = NULL;
     
     context->initialized = 0;
 }
