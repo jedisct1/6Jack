@@ -50,6 +50,17 @@ extern char **environ;
 # define INTERPOSE(F) F
 #endif
 
+#if defined(__SUNPRO_C)
+# define DLL_LOCAL  __attribute__ __hidden
+# define DLL_PUBLIC __attribute__ __global
+#elif defined(_MSG_VER)
+# define DLL_LOCAL
+# define DLL_PUBLIC extern __declspec(dllexport)
+#else
+# define DLL_LOCAL  __attribute__ ((visibility ("hidden")))
+# define DLL_PUBLIC __attribute__ ((visibility ("default")))
+#endif
+
 typedef struct AppContext_ {
     bool initialized;
     int log_fd;

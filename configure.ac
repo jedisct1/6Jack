@@ -30,6 +30,8 @@ AC_USE_SYSTEM_EXTENSIONS
 CPPFLAGS="$CPPFLAGS -D_XPG4_2=1 -D_GNU_SOURCE=1"
 AC_PROG_LIBTOOL
 
+CFLAGS="$CFLAGS -fvisibility=hidden"
+
 if test -d /usr/local/include; then
   CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 fi

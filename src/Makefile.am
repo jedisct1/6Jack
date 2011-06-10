@@ -15,6 +15,7 @@ lib6jack_la_SOURCES = \
         id-name.c \
         filter.h \
         filter.c \
+        hooks.h \
         hook-socket.h \
         hook-socket.c
 
