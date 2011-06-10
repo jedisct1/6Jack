@@ -29,6 +29,7 @@ typedef struct Filter_ {
     msgpack_sbuffer *msgpack_sbuffer;
     msgpack_packer *msgpack_packer;
     msgpack_unpacker *msgpack_unpacker;
+    msgpack_unpacked message;
     pid_t pid;
 } Filter;
 
@@ -54,6 +55,12 @@ IdName pf_domains[] = {
 #endif
 #ifdef PF_NDRV
     { PF_NDRV,   "PF_NDRV" },
+#endif
+#ifdef PF_NETLINK
+    { PF_NETLINK,"PF_NETLINK" },
+#endif
+#ifdef PF_FILE
+    { PF_FILE,   "PF_FILE" },
 #endif
     { -1,        NULL }
 };
@@ -277,15 +284,14 @@ int send_message_to_filter(Filter * const filter)
     return 0;
 }
 
-msgpack_unpacked receive_message_from_filter(Filter * const filter)
+msgpack_unpacked *receive_message_from_filter(Filter * const filter)
 {
+    msgpack_unpacked * const message = &filter->message;
     msgpack_unpacker * const msgpack_unpacker = filter->msgpack_unpacker;
-    msgpack_unpacked message;    
-    msgpack_unpacked_init(&message);
     msgpack_unpacker_reserve_buffer(msgpack_unpacker,
                                     FILTER_READ_BUFFER_SIZE);
     ssize_t readnb;    
-    while (msgpack_unpacker_next(msgpack_unpacker, &message) <= 0) {
+    while (msgpack_unpacker_next(msgpack_unpacker, message) <= 0) {
         assert(msgpack_unpacker_buffer_capacity(msgpack_unpacker) > 0U);
         readnb = safe_read_partial
             (filter->upipe_stdout.fd_read,
@@ -293,13 +299,13 @@ msgpack_unpacked receive_message_from_filter(Filter * const filter)
                 msgpack_unpacker_buffer_capacity(msgpack_unpacker));
         if (readnb <= (ssize_t) 0) {
             assert(0);
-            exit(1);
+            return NULL;
         }
         msgpack_unpacker_buffer_consumed(msgpack_unpacker, readnb);
     }
-    msgpack_object_print(stdout, message.data);
+    msgpack_object_print(stdout, message->data);
     puts("");
-    assert(message.data.type == MSGPACK_OBJECT_MAP);
+    assert(message->data.type == MSGPACK_OBJECT_MAP);
     
     return message;
 }
@@ -350,12 +356,9 @@ int parse_common_reply_map(const msgpack_object_map * const map,
 int socket_parse_filter_reply(Filter * const filter, int * const ret,
                               int * const ret_errno, const int fd)
 {
-    msgpack_unpacked message = receive_message_from_filter(filter);
-    const msgpack_object_map * const map = &message.data.via.map;
-    
+    msgpack_unpacked * const message = receive_message_from_filter(filter);
+    const msgpack_object_map * const map = &message->data.via.map;
     parse_common_reply_map(map, ret, ret_errno, fd);
-    
-    msgpack_unpacked_destroy(&message);
 
     return 0;
 }
@@ -402,8 +405,15 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
     const char * const domain_name = find_name_from_id(pf_domains, domain);
     msgpack_pack_cstring_or_nil(msgpack_packer, domain_name);
     
+    int type_ = type;
+#ifdef SOCK_NONBLOCK
+    type_ &= ~SOCK_NONBLOCK;
+#endif
+#ifdef SOCK_CLOEXEC
+    type_ &= ~SOCK_CLOEXEC;
+#endif
     msgpack_pack_mstring(msgpack_packer, "type");
-    const char * const type_name = find_name_from_id(sock_types, type);
+    const char * const type_name = find_name_from_id(sock_types, type_);
     msgpack_pack_cstring_or_nil(msgpack_packer, type_name);
     
     msgpack_pack_mstring(msgpack_packer, "protocol");
@@ -474,6 +484,7 @@ Context *get_sixjack_context(void)
     filter->msgpack_packer = msgpack_packer_new(filter->msgpack_sbuffer,
                                                 msgpack_sbuffer_write);
     filter->msgpack_unpacker = msgpack_unpacker_new(FILTER_UNPACK_BUFFER_SIZE);
+    msgpack_unpacked_init(&filter->message);
     context.initialized = 1;
     atexit(free_sixjack_context);
     
@@ -496,6 +507,7 @@ void free_sixjack_context(void)
     filter->msgpack_packer = NULL;
     msgpack_unpacker_free(filter->msgpack_unpacker);
     filter->msgpack_unpacker = NULL;
+    msgpack_unpacked_destroy(&filter->message);
     
     context->initialized = 0;
 }

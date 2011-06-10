@@ -25,7 +25,8 @@ if test -d /usr/local/lib; then
 fi
 
 # Checks for libraries.
-AC_CHECK_LIB([msgpack], [msgpack_pack_raw_body])
+AC_CHECK_LIB([msgpack], [msgpack_zone_free])
+AC_CHECK_LIB([dl], [dlsym])
 
 # Checks for header files.
 AC_SYS_LARGEFILE
