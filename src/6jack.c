@@ -334,7 +334,7 @@ int parse_common_reply_map(const msgpack_object_map * const map,
     }
     
     const msgpack_object * const obj_ret_errno =
-        msgpack_get_map_value_for_key(map, "ret_errno");
+        msgpack_get_map_value_for_key(map, "errno");
     if (obj_ret_errno != NULL) {
         assert(obj_ret_errno->type == MSGPACK_OBJECT_POSITIVE_INTEGER ||
                obj_ret_errno->type == MSGPACK_OBJECT_NEGATIVE_INTEGER);
