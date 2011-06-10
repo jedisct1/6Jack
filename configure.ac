@@ -1,7 +1,7 @@
 AC_PREREQ(2.61)
 AC_INIT(6jack, 0.1, bugs at pureftpd dot org)
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/6jack.c])
+AC_CONFIG_SRCDIR([src/app.c])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([1.9 dist-bzip2])
 AM_MAINTAINER_MODE
@@ -45,8 +45,9 @@ AC_CHECK_LIB([dl], [dlsym])
 # Checks for header files.
 AC_SYS_LARGEFILE
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([stdint.h stdbool.h])
-AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h limits.h])
+AC_CHECK_HEADERS([netinet/in.h sys/socket.h])
+AC_CHECK_HEADERS([syslog.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -66,7 +67,8 @@ AC_CHECK_TYPES([ptrdiff_t])
 
 # Checks for library functions.
 AC_FUNC_MEMCMP
-AC_CHECK_FUNCS([atexit socket])
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([atexit socket strerror])
 
 # Switches
 AC_HEADER_ASSERT
