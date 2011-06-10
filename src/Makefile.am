@@ -10,7 +10,11 @@ lib6jack_la_SOURCES = \
         msgpack-extensions.h \
         msgpack-extensions.c \
         id-name.h \
-        id-name.c
+        id-name.c \
+        filter.h \
+        filter.c \
+        hook-socket.h \
+        hook-socket.c
 
 lib6jack_la_LDFLAGS = -version-info 0:1
 
