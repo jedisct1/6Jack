@@ -13,6 +13,9 @@ AppContext *sixjack_get_context(void)
         return &context;
     }
     context.log_fd = -1;
+    if (hooks_init() != 0) {
+        return NULL;
+    }
     Filter * const filter = malloc(sizeof *context.filter);
     if (filter == NULL) {
         return NULL;
