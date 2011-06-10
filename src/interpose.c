@@ -1,4 +1,6 @@
 
+#define DONT_BYPASS_HOOKS   1
+
 #include "common.h"
 
 #ifdef USE_INTERPOSERS

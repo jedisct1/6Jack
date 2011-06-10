@@ -63,6 +63,9 @@ extern char **environ;
 
 #ifdef DEFINE_HOOK_GLOBALS
 # define HOOK_GLOBAL
+# ifndef DONT_BYPASS_HOOKS
+#  error HOOK_GLOBAL can't be defined without DONT_BYPASS_HOOKS
+# endif
 #else
 # define HOOK_GLOBAL extern
 #endif

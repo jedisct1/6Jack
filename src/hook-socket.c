@@ -1,5 +1,6 @@
 
 #define DEFINE_HOOK_GLOBALS 1
+#define DONT_BYPASS_HOOKS   1
 
 #include "common.h"
 #include "filter.h"
