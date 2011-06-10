@@ -19,17 +19,17 @@ typedef struct Filter_ {
     pid_t pid;
 } Filter;
 
-Filter *get_filter(void);
+Filter *filter_get(void);
 
-int before_apply_filter(const int ret, const int ret_errno, const int fd,
+int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function);
 
-int send_message_to_filter(Filter * const filter);
+int filter_send_message(Filter * const filter);
 
-msgpack_unpacked *receive_message_from_filter(Filter * const filter);
+msgpack_unpacked *filter_receive_message(Filter * const filter);
 
-int parse_common_reply_map(const msgpack_object_map * const map,
-                           int * const ret, int * const ret_errno,
-                           const int fd);
+int filter_parse_common_reply_map(const msgpack_object_map * const map,
+                                  int * const ret, int * const ret_errno,
+                                  const int fd);
 #endif

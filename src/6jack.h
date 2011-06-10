@@ -7,7 +7,7 @@ typedef struct Context_ {
     Filter filter;
 } Context;
 
-Context *get_sixjack_context(void);
-void free_sixjack_context(void);
+Context *sixjack_get_context(void);
+void sixjack_free_context(void);
 
 #endif

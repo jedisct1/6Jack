@@ -4,12 +4,12 @@
 #include "filter.h"
 #include "6jack.h"
 
-Filter *get_filter(void)
+Filter *filter_get(void)
 {
-    return &get_sixjack_context()->filter;
+    return &sixjack_get_context()->filter;
 }
 
-int send_message_to_filter(Filter * const filter)
+int filter_send_message(Filter * const filter)
 {
     ssize_t written = safe_write(filter->upipe_stdin.fd_write,
                                  filter->msgpack_sbuffer->data,
@@ -21,7 +21,7 @@ int send_message_to_filter(Filter * const filter)
     return 0;
 }
 
-msgpack_unpacked *receive_message_from_filter(Filter * const filter)
+msgpack_unpacked *filter_receive_message(Filter * const filter)
 {
     msgpack_unpacker * const msgpack_unpacker = &filter->msgpack_unpacker;    
     msgpack_unpacker_destroy(msgpack_unpacker);
@@ -50,9 +50,9 @@ msgpack_unpacked *receive_message_from_filter(Filter * const filter)
     return message;
 }
 
-int parse_common_reply_map(const msgpack_object_map * const map,
-                           int * const ret, int * const ret_errno,
-                           const int fd)
+int filter_parse_common_reply_map(const msgpack_object_map * const map,
+                                  int * const ret, int * const ret_errno,
+                                  const int fd)
 {
     const msgpack_object * const obj_version =
         msgpack_get_map_value_for_key(map, "version");
@@ -93,11 +93,11 @@ int parse_common_reply_map(const msgpack_object_map * const map,
     return 0;
 }
 
-int before_apply_filter(const int ret, const int ret_errno, const int fd,
+int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function)
 {
-    Filter * const filter = get_filter();
+    Filter * const filter = filter_get();
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,

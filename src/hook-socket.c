@@ -3,28 +3,28 @@
 #include "filter.h"
 #include "hook-socket.h"
 
-static int socket_parse_filter_reply(Filter * const filter, int * const ret,
-                                     int * const ret_errno, const int fd)
+static int filter_parse_reply(Filter * const filter, int * const ret,
+                              int * const ret_errno, const int fd)
 {
-    msgpack_unpacked * const message = receive_message_from_filter(filter);
+    msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
-    parse_common_reply_map(map, ret, ret_errno, fd);
-
+    filter_parse_common_reply_map(map, ret, ret_errno, fd);
+    
     return 0;
 }
 
-static int socket_apply_filter(int * const ret, int * const ret_errno,
-                               const int domain, const int type,
-                               const int protocol)
+static int filter_apply(int * const ret, int * const ret_errno,
+                        const int domain, const int type,
+                        const int protocol)
 {
-    Filter * const filter = get_filter();
+    Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
-    before_apply_filter(*ret, *ret_errno, fd, 3U, "socket");    
+    filter_before_apply(*ret, *ret_errno, fd, 3U, "socket");    
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
     const char * const domain_name =
-        find_name_from_id(get_pf_domains(), domain);
+        idn_find_name_from_id(idn_get_pf_domains(), domain);
     msgpack_pack_cstring_or_nil(msgpack_packer, domain_name);
     
     int type_ = type;
@@ -36,18 +36,18 @@ static int socket_apply_filter(int * const ret, int * const ret_errno,
 #endif
     msgpack_pack_mstring(msgpack_packer, "type");
     const char * const type_name =
-        find_name_from_id(get_sock_types(), type_);
+        idn_find_name_from_id(idn_get_sock_types(), type_);
     msgpack_pack_cstring_or_nil(msgpack_packer, type_name);
     
     msgpack_pack_mstring(msgpack_packer, "protocol");
     const char * const protocol_name =
-        find_name_from_id(get_ip_protos(), protocol);
+        idn_find_name_from_id(idn_get_ip_protos(), protocol);
     msgpack_pack_cstring_or_nil(msgpack_packer, protocol_name);
     
-    if (send_message_to_filter(filter) != 0) {
+    if (filter_send_message(filter) != 0) {
         return -1;
     }    
-    return socket_parse_filter_reply(filter, ret, ret_errno, fd);
+    return filter_parse_reply(filter, ret, ret_errno, fd);
 }
 
 int INTERPOSE(socket)(int domain, int type, int protocol)
@@ -64,7 +64,7 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
 #endif
     int ret = __real_socket(domain, type, protocol);
     int ret_errno = errno;
-    socket_apply_filter(&ret, &ret_errno, domain, type, protocol);
+    filter_apply(&ret, &ret_errno, domain, type, protocol);
     errno = ret_errno;
     
     return ret;

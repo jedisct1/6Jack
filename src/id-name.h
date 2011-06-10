@@ -7,9 +7,9 @@ typedef struct IdName_ {
     const char *name;
 } IdName;
 
-const char *find_name_from_id(const IdName *scanned, const int id);
-const IdName *get_pf_domains(void);
-const IdName *get_sock_types(void);
-const IdName *get_ip_protos(void);
+const char *idn_find_name_from_id(const IdName *scanned, const int id);
+const IdName *idn_get_pf_domains(void);
+const IdName *idn_get_sock_types(void);
+const IdName *idn_get_ip_protos(void);
 
 #endif

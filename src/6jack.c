@@ -6,7 +6,7 @@
 #include "filter.h"
 #include "6jack.h"
 
-Context *get_sixjack_context(void)
+Context *sixjack_get_context(void)
 {
     static Context context;
     if (context.initialized != 0) {
@@ -51,12 +51,12 @@ Context *get_sixjack_context(void)
                           FILTER_UNPACK_BUFFER_SIZE);
     msgpack_unpacked_init(&filter->message);
     context.initialized = 1;
-    atexit(free_sixjack_context);
+    atexit(sixjack_free_context);
     
     return &context;
 }
 
-void free_sixjack_context(void)
+void sixjack_free_context(void)
 {
     Context * const context = get_sixjack_context();
     Filter * const filter = &context->filter;
