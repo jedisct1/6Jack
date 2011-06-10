@@ -4,20 +4,15 @@ require "msgpack"
 require "awesome_print"
 
 pac = MessagePack::Unpacker.new
-xxx = 0
 loop do
   begin
     data = STDIN.readpartial(65536)
   rescue EOFError
     break
   end
-  warn "Ruby len=#{data.length}"
   pac.feed(data)
-  obj = { version: 1, return_code: 45, yop: 45 }  
   pac.each do |obj|
-#    warn obj.awesome_inspect
-    obj["extra"] = 42 + xxx
-    xxx += 1
+    warn obj.awesome_inspect
     STDOUT.write obj.to_msgpack
     STDOUT.flush
   end

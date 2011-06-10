@@ -45,7 +45,7 @@ AppContext *sixjack_get_context(void)
         perror("posix_spawn");
         exit(1);
     }
-    printf("Child = %u\n", (unsigned int) filter->pid);
+    printf("Child PID = %u\n", (unsigned int) filter->pid);
         
     posix_spawn_file_actions_destroy(&file_actions);    
     filter->msgpack_sbuffer = msgpack_sbuffer_new();
