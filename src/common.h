@@ -8,13 +8,11 @@
 #include <unistd.h>
 #include <assert.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <signal.h>
 #include <limits.h>
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <syslog.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -49,14 +47,5 @@ extern char **environ;
 #else
 # define INTERPOSE(F) F
 #endif
-
-typedef struct AppContext_ {
-    bool initialized;
-    int log_fd;
-    struct Filter_ *filter;
-} AppContext;
-
-AppContext *sixjack_get_context(void);
-void sixjack_free_context(void);
 
 #endif

@@ -4,11 +4,9 @@ lib_LTLIBRARIES = \
         
 lib6jack_la_SOURCES = \
         common.h \
-        app.c \
+        6jack.c \
         utils.h \
         utils.c \
-        log.h \
-        log.c \
         msgpack-extensions.h \
         msgpack-extensions.c \
         id-name.h \
