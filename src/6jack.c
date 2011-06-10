@@ -1,3 +1,4 @@
+#include <config.h>
 #include <stdio.h>
 #include <dlfcn.h>
 #include <msgpack.h>
@@ -103,7 +104,7 @@ IdName ip_protos[] = {
 };
 
 #ifndef environ
-# ifdef __APPLE_CC__
+# ifdef __APPLE__
 #  include <crt_externs.h>
 #  define environ (*_NSGetEnviron())
 # else
@@ -111,8 +112,12 @@ extern char **environ;
 # endif
 #endif
 
+#if defined(__APPLE__) && !defined(__clang__)
+# define USE_INTERPOSERS 1
+#endif
+
 #ifdef USE_INTERPOSERS
-# define INTERPOSE(F) interposed_ ## F
+# define INTERPOSE(F) sixjack_interposed_ ## F
 #else
 # define INTERPOSE(F) F
 #endif
@@ -432,11 +437,15 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
 int INTERPOSE(socket)(int domain, int type, int protocol)
 {
     static int (* __real_socket)(int domain, int type, int protocol);
-    
+
+#ifdef USE_INTERPOSERS
+    __real_socket = socket;
+#else
     if (__real_socket == NULL) {
-        __real_socket = dlsym(RTLD_NEXT, "socket");
+        __real_socket = dlsym(RTLD_NEXT, "socket");        
         assert(__real_socket != NULL);        
     }
+#endif
     int ret = __real_socket(domain, type, protocol);
     int ret_errno = errno;
     socket_apply_filter(&ret, &ret_errno, domain, type, protocol);
@@ -518,3 +527,11 @@ void free_sixjack_context(void)
     
     context->initialized = 0;
 }
+
+#ifdef USE_INTERPOSERS
+const struct { void *hook_func; void *real_func; } sixjack_interposers[]
+__attribute__ ((section("__DATA, __interpose"))) = {
+    { INTERPOSE(socket), socket }
+};
+#endif
+
