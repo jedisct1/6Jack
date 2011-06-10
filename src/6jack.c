@@ -28,7 +28,7 @@ typedef struct Filter_ {
     Upipe upipe_stdout;
     msgpack_sbuffer *msgpack_sbuffer;
     msgpack_packer *msgpack_packer;
-    msgpack_unpacker *msgpack_unpacker;
+    msgpack_unpacker msgpack_unpacker;
     msgpack_unpacked message;
     pid_t pid;
 } Filter;
@@ -286,10 +286,13 @@ int send_message_to_filter(Filter * const filter)
 
 msgpack_unpacked *receive_message_from_filter(Filter * const filter)
 {
-    msgpack_unpacked * const message = &filter->message;
-    msgpack_unpacker * const msgpack_unpacker = filter->msgpack_unpacker;
+    msgpack_unpacker * const msgpack_unpacker = &filter->msgpack_unpacker;    
+    msgpack_unpacker_destroy(msgpack_unpacker);
+    msgpack_unpacker_init(msgpack_unpacker, FILTER_UNPACK_BUFFER_SIZE);
     msgpack_unpacker_reserve_buffer(msgpack_unpacker,
                                     FILTER_READ_BUFFER_SIZE);
+    msgpack_unpacked * const message = &filter->message;
+    
     ssize_t readnb;    
     while (msgpack_unpacker_next(msgpack_unpacker, message) <= 0) {
         assert(msgpack_unpacker_buffer_capacity(msgpack_unpacker) > 0U);
@@ -483,7 +486,8 @@ Context *get_sixjack_context(void)
     filter->msgpack_sbuffer = msgpack_sbuffer_new();
     filter->msgpack_packer = msgpack_packer_new(filter->msgpack_sbuffer,
                                                 msgpack_sbuffer_write);
-    filter->msgpack_unpacker = msgpack_unpacker_new(FILTER_UNPACK_BUFFER_SIZE);
+    msgpack_unpacker_init(&filter->msgpack_unpacker,
+                          FILTER_UNPACK_BUFFER_SIZE);
     msgpack_unpacked_init(&filter->message);
     context.initialized = 1;
     atexit(free_sixjack_context);
@@ -501,12 +505,15 @@ void free_sixjack_context(void)
     Context * const context = get_sixjack_context();
     Filter * const filter = &context->filter;
 
-    msgpack_sbuffer_free(filter->msgpack_sbuffer);
-    filter->msgpack_sbuffer = NULL;
-    msgpack_packer_free(filter->msgpack_packer);
-    filter->msgpack_packer = NULL;
-    msgpack_unpacker_free(filter->msgpack_unpacker);
-    filter->msgpack_unpacker = NULL;
+    if (filter->msgpack_sbuffer != NULL) {
+        msgpack_sbuffer_free(filter->msgpack_sbuffer);
+        filter->msgpack_sbuffer = NULL;
+    }
+    if (filter->msgpack_packer != NULL) {
+        msgpack_packer_free(filter->msgpack_packer);
+        filter->msgpack_packer = NULL;
+    }
+    msgpack_unpacker_destroy(&filter->msgpack_unpacker);   
     msgpack_unpacked_destroy(&filter->message);
     
     context->initialized = 0;
