@@ -30,7 +30,7 @@ bin_PROGRAMS = \
         6jack-test.c
 
 6jack_test_LDADD = \
-        $(AM_LDDD) \
+        $(AM_LDADD) \
         lib6jack.la
         
 6jack_test_DEPENDENCIES = \
