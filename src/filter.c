@@ -2,11 +2,10 @@
 #include "common.h"
 #include "msgpack-extensions.h"
 #include "filter.h"
-#include "6jack.h"
 
 Filter *filter_get(void)
 {
-    return &sixjack_get_context()->filter;
+    return sixjack_get_context()->filter;
 }
 
 int filter_send_message(Filter * const filter)
