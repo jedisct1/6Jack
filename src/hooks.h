@@ -4,4 +4,6 @@
 
 #include "hook-socket.h"
 
+int hooks_init(void);
+
 #endif

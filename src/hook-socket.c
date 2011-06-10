@@ -53,7 +53,7 @@ static int filter_apply(int * const ret, int * const ret_errno,
     return filter_parse_reply(filter, ret, ret_errno, fd);
 }
 
-static int init(void)
+int __real_socket_init(void)
 {
 #ifdef USE_INTERPOSERS
     __real_socket = socket;
@@ -68,7 +68,7 @@ static int init(void)
 
 int INTERPOSE(socket)(int domain, int type, int protocol)
 {
-    init();
+    __real_socket_init();
     int ret = __real_socket(domain, type, protocol);
     int ret_errno = errno;
     filter_apply(&ret, &ret_errno, domain, type, protocol);
