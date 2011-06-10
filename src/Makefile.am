@@ -3,7 +3,14 @@ lib_LTLIBRARIES = \
         lib6jack.la
         
 lib6jack_la_SOURCES = \
-        6jack.c
+        common.h \
+        6jack.c \
+        utils.h \
+        utils.c \
+        msgpack-extensions.h \
+        msgpack-extensions.c \
+        id-name.h \
+        id-name.c
 
 lib6jack_la_LDFLAGS = -version-info 0:1
 

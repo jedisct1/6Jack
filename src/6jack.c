@@ -1,280 +1,13 @@
-#include <config.h>
-#include <stdio.h>
-#include <dlfcn.h>
-#include <msgpack.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <spawn.h>
-#include <assert.h>
-#include <poll.h>
-#include <errno.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <limits.h>
-#include <stdint.h>
-#include <stdbool.h>
 
-#define VERSION_MAJOR 1
-#define FILTER_READ_BUFFER_SIZE   MSGPACK_UNPACKER_INIT_BUFFER_SIZE
-#define FILTER_UNPACK_BUFFER_SIZE FILTER_READ_BUFFER_SIZE
+#include "common.h"
+#include "utils.h"
+#include "msgpack-extensions.h"
+#include "id-name.h"
+#include "6jack.h"
 
-typedef struct Upipe_ {
-    int fd_read;
-    int fd_write;
-} Upipe;
-
-typedef struct Filter_ {
-    Upipe upipe_stdin;
-    Upipe upipe_stdout;
-    msgpack_sbuffer *msgpack_sbuffer;
-    msgpack_packer *msgpack_packer;
-    msgpack_unpacker msgpack_unpacker;
-    msgpack_unpacked message;
-    pid_t pid;
-} Filter;
-
-typedef struct Context_ {
-    bool initialized;
-    Filter filter;
-} Context;
-
-typedef struct IdName_ {
-    int id;
-    const char *name;
-} IdName;
-
-IdName pf_domains[] = {
-    { PF_LOCAL,  "PF_LOCAL" },
-    { PF_UNIX,   "PF_UNIX" },
-    { PF_INET,   "PF_INET" },
-    { PF_ROUTE,  "PF_ROUTE" },
-    { PF_KEY,    "PF_KEY" },
-    { PF_INET6,  "PF_INET6" },
-#ifdef PF_SYSTEM
-    { PF_SYSTEM, "PF_SYSTEM" },
-#endif
-#ifdef PF_NDRV
-    { PF_NDRV,   "PF_NDRV" },
-#endif
-#ifdef PF_NETLINK
-    { PF_NETLINK,"PF_NETLINK" },
-#endif
-#ifdef PF_FILE
-    { PF_FILE,   "PF_FILE" },
-#endif
-    { -1,        NULL }
-};
-
-IdName sock_types[] = {
-    { SOCK_STREAM,    "SOCK_STREAM" },
-    { SOCK_DGRAM,     "SOCK_DGRAM" },
-    { SOCK_RAW,       "SOCK_RAW" },
-    { SOCK_SEQPACKET, "SOCK_SEQPACKET" },
-    { SOCK_RDM,       "SOCK_RDM" },
-    { -1,             NULL }
-};
-
-IdName ip_protos[] = {
-    { IPPROTO_IP,      "IPPROTO_IP" },
-    { IPPROTO_ICMP,    "IPPROTO_ICMP" },
-    { IPPROTO_IGMP,    "IPPROTO_IGMP" },
-#ifdef IPPROTO_IPV4    
-    { IPPROTO_IPV4,    "IPPROTO_IPV4" },
-#endif
-    { IPPROTO_TCP,     "IPPROTO_TCP" },
-    { IPPROTO_UDP,     "IPPROTO_UDP" },
-    { IPPROTO_IPV6,    "IPPROTO_IPV6" },
-    { IPPROTO_ROUTING, "IPPROTO_ROUTING" },
-    { IPPROTO_FRAGMENT,"IPPROTO_FRAGMENT" },
-    { IPPROTO_GRE,     "IPPROTO_GRE" },
-    { IPPROTO_ESP,     "IPPROTO_ESP" },
-    { IPPROTO_AH,      "IPPROTO_AH" },
-    { IPPROTO_ICMPV6,  "IPPROTO_ICMPV6" },
-    { IPPROTO_NONE,    "IPPROTO_NONE" },
-    { IPPROTO_DSTOPTS, "IPPROTO_DSTOPTS" },
-#ifdef IPPROTO_IPCOMP    
-    { IPPROTO_IPCOMP,  "IPPROTO_IPCOMP" },
-#endif    
-    { IPPROTO_PIM,     "IPPROTO_PIM" },
-#ifdef IPPROTO_PGM
-    { IPPROTO_PGM,     "IPPROTO_PGM" },
-#endif
-    { -1,              NULL }
-};
-
-#ifndef environ
-# ifdef __APPLE__
-#  include <crt_externs.h>
-#  define environ (*_NSGetEnviron())
-# else
-extern char **environ;
-# endif
-#endif
-
-#if defined(__APPLE__) && !defined(__clang__)
-# define USE_INTERPOSERS 1
-#endif
-
-#ifdef USE_INTERPOSERS
-# define INTERPOSE(F) sixjack_interposed_ ## F
-#else
-# define INTERPOSE(F) F
-#endif
-
-Context *get_sixjack_context(void);
-void free_sixjack_context(void);
-Filter *get_filter(void);
-
-int upipe_init(Upipe * const upipe)
+Filter *get_filter(void)
 {
-    int fds[2];
-    
-    if (pipe(fds) != 0) {
-        upipe->fd_read = upipe->fd_write = -1;
-        return -1;
-    }
-    upipe->fd_read  = fds[0];
-    upipe->fd_write = fds[1];
-    
-    return 0;
-}
-
-void upipe_free(Upipe * const upipe)
-{
-    if (upipe->fd_read != -1) {
-        close(upipe->fd_read);
-        upipe->fd_read = -1;
-    }
-    if (upipe->fd_write != -1) {
-        close(upipe->fd_write);
-        upipe->fd_write = -1;
-    }
-}
-
-int safe_write(const int fd, const void * const buf_, size_t count,
-               const int timeout)
-{
-    const char *buf = (const char *) buf_;
-    ssize_t written;
-    struct pollfd pfd;
-    
-    pfd.fd = fd;
-    pfd.events = POLLOUT;
-    
-    while (count > (size_t) 0) {
-        for (;;) {
-            if ((written = write(fd, buf, count)) <= (ssize_t) 0) {
-                if (errno == EAGAIN) {
-                    if (poll(&pfd, (nfds_t) 1, timeout) == 0) {
-                        errno = ETIMEDOUT;
-                        return -1;
-                    }
-                } else if (errno != EINTR) {
-                    return -1;
-                }
-                continue;
-            }
-            break;
-        }
-        buf += written;
-        count -= written;
-    }
-    return 0;
-}
-
-ssize_t safe_read(const int fd, void * const buf_, size_t count)
-{
-    unsigned char *buf = (unsigned char *) buf_;
-    ssize_t readnb;
-    
-    do {
-        while ((readnb = read(fd, buf, count)) < (ssize_t) 0 &&
-               errno == EINTR);
-        if (readnb < (ssize_t) 0 || readnb > (ssize_t) count) {
-            return readnb;
-        }
-        if (readnb == (ssize_t) 0) {
-ret:
-            return (ssize_t) (buf - (unsigned char *) buf_);
-        }
-        count -= readnb;
-        buf += readnb;
-    } while (count > (ssize_t) 0);
-    goto ret;
-}
-
-ssize_t safe_read_partial(const int fd, void * const buf_,
-                          const size_t max_count)
-{
-    unsigned char * const buf = (unsigned char * const) buf_;
-    ssize_t readnb;
-
-    while ((readnb = read(fd, buf, max_count)) < (ssize_t) 0 &&
-           errno == EINTR);
-    return readnb;
-}
-
-int msgpack_pack_lstring(msgpack_packer * const msgpack_packer,
-                         const char * const str, const size_t str_len)
-{
-    if (msgpack_pack_raw(msgpack_packer, str_len) != 0) {
-        return -1;
-    }
-    return msgpack_pack_raw_body(msgpack_packer, str, str_len);    
-}
-
-int msgpack_pack_cstring(msgpack_packer * const msgpack_packer,
-                         const char * const str)
-{
-    return msgpack_pack_lstring(msgpack_packer, str, strlen(str));
-}
-
-#define msgpack_pack_mstring(MSGPACK_PACKER, STR) \
-    msgpack_pack_lstring((MSGPACK_PACKER), (STR), sizeof (STR) - (size_t) 1U)
-
-const msgpack_object * msgpack_get_map_value_for_key(const msgpack_object_map * const map,
-                                                     const char * const key)
-{
-    const size_t key_len = strlen(key);
-    assert(key_len <= UINT32_MAX);
-    const size_t key_len_32 = (uint32_t) key_len;
-    uint32_t kv_size = map->size;
-    const struct msgpack_object_kv *kv;
-    const msgpack_object_raw *scanned_key;
-    while (kv_size > 0U) {
-        kv_size--;
-        kv = &map->ptr[kv_size];
-        assert(kv->key.type == MSGPACK_OBJECT_RAW);
-        scanned_key = &kv->key.via.raw;
-        if (scanned_key->size == key_len_32 &&
-            memcmp(scanned_key->ptr, key, key_len) == 0) {
-            return &kv->val;
-        }
-    }
-    return NULL;
-}
-
-int msgpack_pack_cstring_or_nil(msgpack_packer * const msgpack_packer,
-                                const char * const str)
-{    
-    if (str == NULL) {
-        return msgpack_pack_nil(msgpack_packer);   
-    }
-    return msgpack_pack_cstring(msgpack_packer, str);
-}
-
-const char *find_name_from_id(const IdName *scanned, const int id)
-{
-    do {
-        if (scanned->id == id) {
-            break;
-        }
-        scanned++;
-    } while (scanned->name != NULL);
-    assert(scanned->name != NULL);
-
-    return scanned->name;
+    return &get_sixjack_context()->filter;
 }
 
 int send_message_to_filter(Filter * const filter)
@@ -410,7 +143,8 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
     before_apply_filter(*ret, *ret_errno, fd, 3U, "socket");    
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
-    const char * const domain_name = find_name_from_id(pf_domains, domain);
+    const char * const domain_name =
+        find_name_from_id(get_pf_domains(), domain);
     msgpack_pack_cstring_or_nil(msgpack_packer, domain_name);
     
     int type_ = type;
@@ -421,11 +155,13 @@ int socket_apply_filter(int * const ret, int * const ret_errno,
     type_ &= ~SOCK_CLOEXEC;
 #endif
     msgpack_pack_mstring(msgpack_packer, "type");
-    const char * const type_name = find_name_from_id(sock_types, type_);
+    const char * const type_name =
+        find_name_from_id(get_sock_types(), type_);
     msgpack_pack_cstring_or_nil(msgpack_packer, type_name);
     
     msgpack_pack_mstring(msgpack_packer, "protocol");
-    const char * const protocol_name = find_name_from_id(ip_protos, protocol);
+    const char * const protocol_name =
+        find_name_from_id(get_ip_protos(), protocol);
     msgpack_pack_cstring_or_nil(msgpack_packer, protocol_name);
     
     if (send_message_to_filter(filter) != 0) {
@@ -463,7 +199,7 @@ Context *get_sixjack_context(void)
     
     Filter * const filter = &context.filter;
     int ret;
-    char *argv[] = { (char *) "6jack-filter", NULL };
+    char *argv[] = { (char *) "example-filter", NULL };
 
     upipe_init(&filter->upipe_stdin);
     upipe_init(&filter->upipe_stdout);
@@ -482,7 +218,7 @@ Context *get_sixjack_context(void)
                                       filter->upipe_stdout.fd_read);
     posix_spawn_file_actions_addclose(&file_actions,
                                       filter->upipe_stdout.fd_write);
-    ret = posix_spawn(&filter->pid, "./a.rb",
+    ret = posix_spawn(&filter->pid, "./example-filter.rb",
                       &file_actions, NULL, argv, environ);
     if (ret != 0) {
         errno = ret;
@@ -502,11 +238,6 @@ Context *get_sixjack_context(void)
     atexit(free_sixjack_context);
     
     return &context;
-}
-
-Filter *get_filter(void)
-{
-    return &get_sixjack_context()->filter;
 }
 
 void free_sixjack_context(void)
