@@ -61,6 +61,12 @@ extern char **environ;
 # define DLL_PUBLIC __attribute__ ((visibility ("default")))
 #endif
 
+#ifdef DEFINE_HOOK_GLOBALS
+# define HOOK_GLOBAL
+#else
+# define HOOK_GLOBAL extern
+#endif
+
 typedef struct AppContext_ {
     bool initialized;
     int log_fd;

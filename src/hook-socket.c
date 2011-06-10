@@ -1,4 +1,6 @@
 
+#define DEFINE_HOOK_GLOBALS 1
+
 #include "common.h"
 #include "filter.h"
 #include "hook-socket.h"
@@ -50,10 +52,8 @@ static int filter_apply(int * const ret, int * const ret_errno,
     return filter_parse_reply(filter, ret, ret_errno, fd);
 }
 
-int INTERPOSE(socket)(int domain, int type, int protocol)
+static int init(void)
 {
-    static int (* __real_socket)(int domain, int type, int protocol);
-
 #ifdef USE_INTERPOSERS
     __real_socket = socket;
 #else
@@ -62,6 +62,12 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
         assert(__real_socket != NULL);        
     }
 #endif
+    return 0;
+}
+
+int INTERPOSE(socket)(int domain, int type, int protocol)
+{
+    init();
     int ret = __real_socket(domain, type, protocol);
     int ret_errno = errno;
     filter_apply(&ret, &ret_errno, domain, type, protocol);
