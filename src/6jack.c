@@ -71,7 +71,9 @@ IdName ip_protos[] = {
     { IPPROTO_IP,      "IPPROTO_IP" },
     { IPPROTO_ICMP,    "IPPROTO_ICMP" },
     { IPPROTO_IGMP,    "IPPROTO_IGMP" },
+#ifdef IPPROTO_IPV4    
     { IPPROTO_IPV4,    "IPPROTO_IPV4" },
+#endif
     { IPPROTO_TCP,     "IPPROTO_TCP" },
     { IPPROTO_UDP,     "IPPROTO_UDP" },
     { IPPROTO_IPV6,    "IPPROTO_IPV6" },
@@ -83,7 +85,9 @@ IdName ip_protos[] = {
     { IPPROTO_ICMPV6,  "IPPROTO_ICMPV6" },
     { IPPROTO_NONE,    "IPPROTO_NONE" },
     { IPPROTO_DSTOPTS, "IPPROTO_DSTOPTS" },
+#ifdef IPPROTO_IPCOMP    
     { IPPROTO_IPCOMP,  "IPPROTO_IPCOMP" },
+#endif    
     { IPPROTO_PIM,     "IPPROTO_PIM" },
 #ifdef IPPROTO_PGM
     { IPPROTO_PGM,     "IPPROTO_PGM" },
