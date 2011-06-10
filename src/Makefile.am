@@ -16,7 +16,9 @@ lib6jack_la_SOURCES = \
         hook-socket.h \
         hook-socket.c
 
-lib6jack_la_LDFLAGS = -version-info 0:1
+lib6jack_la_LDFLAGS = \
+        $(AM_LDFLAGS) \
+        -version-info $(SIXJACK_LIBRARY_VERSION)
 
 bin_PROGRAMS = \
         6jack-test
@@ -25,6 +27,10 @@ bin_PROGRAMS = \
         6jack-test.c
 
 6jack_test_LDADD = \
+        $(AM_LDDD) \
+        lib6jack.la
+        
+6jack_test_DEPENDENCIES = \
         lib6jack.la
 
 EXTRA_DIST = \
