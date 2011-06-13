@@ -12,6 +12,7 @@ AppContext *sixjack_get_context(void)
     if (context.initialized != 0) {
         return &context;
     }
+    context.pid = getpid();
     context.log_fd = -1;
     if (hooks_init() != 0) {
         return NULL;
@@ -48,6 +49,7 @@ AppContext *sixjack_get_context(void)
         perror("posix_spawn");
         exit(1);
     }
+    printf("Parent PID = %u\n", getpid());    
     printf("Child PID = %u\n", (unsigned int) filter->pid);
         
     posix_spawn_file_actions_destroy(&file_actions);    

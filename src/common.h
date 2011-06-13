@@ -66,7 +66,7 @@ extern char **environ;
 #ifdef DEFINE_HOOK_GLOBALS
 # define HOOK_GLOBAL
 # ifndef DONT_BYPASS_HOOKS
-#  error HOOK_GLOBAL can't be defined without DONT_BYPASS_HOOKS
+#  error HOOK_GLOBAL cannot be defined without DONT_BYPASS_HOOKS
 # endif
 #else
 # define HOOK_GLOBAL extern
@@ -75,6 +75,7 @@ extern char **environ;
 typedef struct AppContext_ {
     bool initialized;
     int log_fd;
+    size_t pid;
     struct Filter_ *filter;
 } AppContext;
 

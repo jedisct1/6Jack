@@ -98,6 +98,7 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const bool include_net_info)
 {
     Filter * const filter = filter_get();
+    const AppContext * const context = sixjack_get_context();    
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
@@ -108,8 +109,8 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
     
     msgpack_pack_mstring(msgpack_packer, "pid");
-    msgpack_pack_unsigned_int(msgpack_packer, filter->pid);
-    
+    msgpack_pack_unsigned_int(msgpack_packer, context->pid);
+
     msgpack_pack_mstring(msgpack_packer, "function");
     msgpack_pack_cstring(msgpack_packer, function);
 
