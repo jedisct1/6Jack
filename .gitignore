@@ -27,5 +27,6 @@ src/*.lo
 src/*.la
 src/Makefile.in
 src/6jack-test
+src/6jack
 stamp-*
 testing
