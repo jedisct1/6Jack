@@ -48,7 +48,6 @@ int __real_connect_init(void)
 
 int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
 {
-    fprintf(stderr, "***\n");
     __real_connect_init();
     const bool bypass_filter = getenv("SIXJACK_BYPASS") != NULL;
     int ret = __real_connect(fd, sa, sa_len);
