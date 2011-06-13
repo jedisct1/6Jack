@@ -96,20 +96,26 @@ int filter_parse_common_reply_map(const msgpack_object_map * const map,
 int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function,
-                        const bool include_net_info)
+                        const struct sockaddr * const sa_local,
+                        const socklen_t sa_local_len,
+                        const struct sockaddr * const sa_remote,
+                        const socklen_t sa_remote_len)
 {
-    (void) include_net_info;
     Filter * const filter = filter_get();
     const AppContext * const context = sixjack_get_context();    
     assert(filter->msgpack_packer != NULL);
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    if (include_net_info) {
-        msgpack_pack_map(msgpack_packer, nongeneric_items + 10U);
-    } else {
-        msgpack_pack_map(msgpack_packer, nongeneric_items + 6U);
-    }    
+    unsigned int items_count = nongeneric_items + 6U;
+    if (sa_local != NULL) {
+        items_count += 2U;
+    }
+    if (sa_remote != NULL) {
+        items_count += 2U;
+    }
+    msgpack_pack_map(msgpack_packer, items_count);
+    
     msgpack_pack_mstring(msgpack_packer, "version");
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
     
@@ -128,24 +134,26 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_pack_mstring(msgpack_packer, "fd");
     msgpack_pack_int(msgpack_packer, fd);    
 
-    if (include_net_info) {
-        char host[NI_MAXHOST], port[NI_MAXSERV];
-        char *host_ = host, *port_ = port;
-        
-        if (get_sock_info(fd, host, port) != 0) {
-            host_ = port_ = NULL;
+    char host[NI_MAXHOST], port[NI_MAXSERV];
+    char *host_ = host, *port_ = port;
+    
+    if (sa_local != NULL) {
+        if (get_name_info(sa_local, sa_local_len, host, port) != 0) {
+            host_ = port_ = NULL;            
         }
         msgpack_pack_mstring(msgpack_packer, "local_host");
         msgpack_pack_cstring_or_nil(msgpack_packer, host_);
         msgpack_pack_mstring(msgpack_packer, "local_port");
         msgpack_pack_cstring_or_nil(msgpack_packer, port_);        
-        if (get_peer_info(fd, host, port) != 0) {
-            host_ = port_ = NULL;
+    }
+    if (sa_remote != NULL) {
+        if (get_name_info(sa_remote, sa_remote_len, host, port) != 0) {
+            host_ = port_ = NULL;            
         }
         msgpack_pack_mstring(msgpack_packer, "remote_host");
-        msgpack_pack_cstring_or_nil(msgpack_packer, host_);        
+        msgpack_pack_cstring_or_nil(msgpack_packer, host_);
         msgpack_pack_mstring(msgpack_packer, "remote_port");
-        msgpack_pack_cstring_or_nil(msgpack_packer, port_);        
+        msgpack_pack_cstring_or_nil(msgpack_packer, port_);
     }
     return 0;
 }

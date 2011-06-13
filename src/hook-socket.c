@@ -25,7 +25,8 @@ static int filter_apply(int * const ret, int * const ret_errno,
     Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
-    filter_before_apply(*ret, *ret_errno, fd, 3U, "socket", false);
+    filter_before_apply(*ret, *ret_errno, fd, 3U, "socket",
+                        NULL, (socklen_t) 0U, NULL, (socklen_t) 0U);
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
     const char * const domain_name =

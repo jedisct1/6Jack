@@ -25,7 +25,8 @@ static int filter_apply(int * const ret, int * const ret_errno,
     (void) sa;
     (void) sa_len;
     Filter * const filter = filter_get();
-    filter_before_apply(*ret, *ret_errno, fd, 0U, "connect", true);
+    filter_before_apply(*ret, *ret_errno, fd, 0U, "connect",
+                        NULL, (socklen_t) 0U, sa, sa_len);
 
     if (filter_send_message(filter) != 0) {
         return -1;

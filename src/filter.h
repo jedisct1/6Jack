@@ -24,7 +24,10 @@ Filter *filter_get(void);
 int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function,
-                        const bool include_net_info);
+                        const struct sockaddr * const sa_local,
+                        const socklen_t sa_local_len,
+                        const struct sockaddr * const sa_remote,
+                        const socklen_t sa_remote_len);
 
 int filter_send_message(Filter * const filter);
 

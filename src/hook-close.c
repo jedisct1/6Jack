@@ -22,7 +22,19 @@ static int filter_apply(int * const ret, int * const ret_errno,
                         const int fd)
 {
     Filter * const filter = filter_get();
-    filter_before_apply(*ret, *ret_errno, fd, 0U, "close", false);
+    struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
+    socklen_t sa_local_len = sizeof sa_local;    
+    if (getsockname(fd, (struct sockaddr *) &sa_local, &sa_local_len) != 0) {
+        sa_local_ = NULL;
+    }
+    struct sockaddr_storage sa_remote, *sa_remote_ = &sa_remote;
+    socklen_t sa_remote_len = sizeof sa_remote;
+    if (getsockname(fd, (struct sockaddr *) &sa_remote, &sa_remote_len) != 0) {
+        sa_remote_ = NULL;
+    }
+    filter_before_apply(*ret, *ret_errno, fd, 0U, "close",
+                        (struct sockaddr *) &sa_local, sa_local_len,
+                        (struct sockaddr *) &sa_remote, sa_remote_len);
     
     if (filter_send_message(filter) != 0) {
         return -1;
