@@ -2,6 +2,7 @@
 #include "common.h"
 #include "msgpack-extensions.h"
 #include "filter.h"
+#include "utils.h"
 
 Filter *filter_get(void)
 {
@@ -104,8 +105,11 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    msgpack_pack_map(msgpack_packer, nongeneric_items + 6U);
-    
+    if (include_net_info) {
+        msgpack_pack_map(msgpack_packer, nongeneric_items + 10U);
+    } else {
+        msgpack_pack_map(msgpack_packer, nongeneric_items + 6U);
+    }    
     msgpack_pack_mstring(msgpack_packer, "version");
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
     
@@ -123,8 +127,25 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
 
     msgpack_pack_mstring(msgpack_packer, "fd");
     msgpack_pack_int(msgpack_packer, fd);    
-    
+
+    if (include_net_info) {
+        char host[NI_MAXHOST], port[NI_MAXSERV];
+        char *host_ = host, *port_ = port;
+        
+        if (get_sock_info(fd, host, port) != 0) {
+            host_ = port_ = NULL;
+        }
+        msgpack_pack_mstring(msgpack_packer, "local_host");
+        msgpack_pack_cstring_or_nil(msgpack_packer, host_);
+        msgpack_pack_mstring(msgpack_packer, "local_port");
+        msgpack_pack_cstring_or_nil(msgpack_packer, port_);        
+        if (get_peer_info(fd, host, port) != 0) {
+            host_ = port_ = NULL;
+        }
+        msgpack_pack_mstring(msgpack_packer, "remote_host");
+        msgpack_pack_cstring_or_nil(msgpack_packer, host_);        
+        msgpack_pack_mstring(msgpack_packer, "remote_port");
+        msgpack_pack_cstring_or_nil(msgpack_packer, port_);        
+    }
     return 0;
 }
-
-

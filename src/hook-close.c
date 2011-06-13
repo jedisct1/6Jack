@@ -22,7 +22,7 @@ static int filter_apply(int * const ret, int * const ret_errno,
                         const int fd)
 {
     Filter * const filter = filter_get();
-    filter_before_apply(*ret, *ret_errno, fd, 0U, "close", true);
+    filter_before_apply(*ret, *ret_errno, fd, 0U, "close", false);
     
     if (filter_send_message(filter) != 0) {
         return -1;
