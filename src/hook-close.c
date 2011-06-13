@@ -18,10 +18,10 @@ static int filter_parse_reply(Filter * const filter, int * const ret,
     return 0;
 }
 
-static int filter_apply(int * const ret, int * const ret_errno)
+static int filter_apply(int * const ret, int * const ret_errno,
+                        const int fd)
 {
     Filter * const filter = filter_get();
-    const int fd = *ret;    
     filter_before_apply(*ret, *ret_errno, fd, 0U, "close", true);
     
     if (filter_send_message(filter) != 0) {
@@ -46,11 +46,10 @@ int __real_close_init(void)
 int INTERPOSE(close)(int fd)
 {
     __real_close_init();
-    bool _is_socket = is_socket(fd);
     int ret = __real_close(fd);
     int ret_errno = errno;
-    if (_is_socket) {
-        filter_apply(&ret, &ret_errno);
+    if (getenv("SIXJACK_BYPASS") == NULL && is_socket(fd)) {
+        filter_apply(&ret, &ret_errno, fd);
     }
     errno = ret_errno;
     

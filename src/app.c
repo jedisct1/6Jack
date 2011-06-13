@@ -42,8 +42,10 @@ AppContext *sixjack_get_context(void)
                                       filter->upipe_stdout.fd_read);
     posix_spawn_file_actions_addclose(&file_actions,
                                       filter->upipe_stdout.fd_write);
+    setenv("SIXJACK_BYPASS", "BYPASS", 0);
     ret = posix_spawn(&filter->pid, "./example-filter.rb",
                       &file_actions, NULL, argv, environ);
+    unsetenv("SIXJACK_BYPASS");
     if (ret != 0) {
         errno = ret;
         perror("posix_spawn");
