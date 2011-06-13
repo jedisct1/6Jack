@@ -47,7 +47,7 @@ int INTERPOSE(close)(int fd)
 {
     __real_close_init();
     const bool bypass_filter =
-        getenv("SIXJACK_BYPASS") != NULL || is_socket(fd);
+        getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
     int ret = __real_close(fd);
     int ret_errno = errno;
     if (bypass_filter == false) {
