@@ -21,7 +21,6 @@ static int filter_parse_reply(Filter * const filter, int * const ret,
 static int filter_apply(int * const ret, int * const ret_errno)
 {
     Filter * const filter = filter_get();
-    msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
     filter_before_apply(*ret, *ret_errno, fd, 0U, "close", true);
     

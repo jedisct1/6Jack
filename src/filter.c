@@ -97,6 +97,7 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
                         const char * const function,
                         const bool include_net_info)
 {
+    (void) include_net_info;
     Filter * const filter = filter_get();
     const AppContext * const context = sixjack_get_context();    
     assert(filter->msgpack_packer != NULL);
