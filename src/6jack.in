@@ -1,0 +1,28 @@
+#! /bin/sh
+# @PACKAGE@ @VERSION@
+
+if [ $# = 0 ]; then
+  cat<<EOT
+
+@PACKAGE@ v@VERSION@
+
+Usage: ${0} <command> [args]
+
+EOT
+  exit 1
+fi
+
+EXTRA_LIBRARIES=''
+LIBDIR='@DESTDIR@@libdir@'
+for lib in @lib_LTLIBRARIES@; do
+  . "${LIBDIR}"/${lib}
+  EXTRA_LIBRARIES="${EXTRA_LIBRARIES:+:}"$LIBDIR"/${dlname}"
+done
+
+LD_PRELOAD="${LD_PRELOAD:+:}${EXTRA_LIBRARIES}"
+export LD_PRELOAD
+DYLD_INSERT_LIBRARIES="${DYLD_INSERT_LIBRARIES:+:}${EXTRA_LIBRARIES}"
+export DYLD_INSERT_LIBRARIES
+
+exec ${*}
+

@@ -48,7 +48,7 @@ AC_CHECK_LIB([dl], [dlsym])
 AC_SYS_LARGEFILE
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([stdint.h stdbool.h limits.h])
-AC_CHECK_HEADERS([netinet/in.h sys/socket.h])
+AC_CHECK_HEADERS([netinet/in.h sys/socket.h netdb.h])
 AC_CHECK_HEADERS([syslog.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
