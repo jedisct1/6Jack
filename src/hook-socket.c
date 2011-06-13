@@ -71,9 +71,10 @@ int __real_socket_init(void)
 int INTERPOSE(socket)(int domain, int type, int protocol)
 {
     __real_socket_init();
+    const bool bypass_filter = getenv("SIXJACK_BYPASS") != NULL;
     int ret = __real_socket(domain, type, protocol);
     int ret_errno = errno;
-    if (getenv("SIXJACK_BYPASS") == NULL) {    
+    if (bypass_filter == false) {
         filter_apply(&ret, &ret_errno, domain, type, protocol);
     }
     errno = ret_errno;
