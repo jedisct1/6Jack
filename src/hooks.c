@@ -7,6 +7,7 @@
 int hooks_init(void)
 {
     __real_socket_init();
+    __real_close_init();
     
     return 0;
 }

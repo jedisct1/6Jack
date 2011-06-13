@@ -17,7 +17,9 @@
 #include <syslog.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <poll.h>
 #include <dlfcn.h>
 #include <spawn.h>

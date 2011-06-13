@@ -90,3 +90,13 @@ ssize_t safe_read_partial(const int fd, void * const buf_,
            errno == EINTR);
     return readnb;
 }
+
+bool is_socket(const int fd)
+{
+    struct stat st;
+
+    if (fstat(fd, &st) != 0) {
+        return false;
+    }
+    return (bool) S_ISSOCK(st.st_mode);
+}

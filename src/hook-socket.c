@@ -6,6 +6,8 @@
 #include "filter.h"
 #include "hook-socket.h"
 
+int (* __real_socket)(int domain, int type, int protocol);
+
 static int filter_parse_reply(Filter * const filter, int * const ret,
                               int * const ret_errno, const int fd)
 {

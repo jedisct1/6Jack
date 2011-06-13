@@ -18,4 +18,6 @@ ssize_t safe_read(const int fd, void * const buf_, size_t count);
 ssize_t safe_read_partial(const int fd, void * const buf_,
                           const size_t max_count);
 
+bool is_socket(const int fd);
+
 #endif
