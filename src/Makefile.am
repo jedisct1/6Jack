@@ -9,6 +9,8 @@ lib6jack_la_SOURCES = \
 	filter.h \
 	hook-close.c \
 	hook-close.h \
+	hook-connect.c \
+	hook-connect.h \
 	hook-socket.c \
 	hook-socket.h \
 	hooks.c \
