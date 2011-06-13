@@ -120,9 +120,7 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_pack_int(msgpack_packer, ret_errno);
 
     msgpack_pack_mstring(msgpack_packer, "fd");
-    msgpack_pack_int(msgpack_packer, fd);
-    
-    assert(include_net_info == 0);
+    msgpack_pack_int(msgpack_packer, fd);    
     
     return 0;
 }

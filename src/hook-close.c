@@ -47,9 +47,12 @@ int __real_close_init(void)
 int INTERPOSE(close)(int fd)
 {
     __real_close_init();
+    bool _is_socket = is_socket(fd);
     int ret = __real_close(fd);
     int ret_errno = errno;
-    filter_apply(&ret, &ret_errno);
+    if (_is_socket) {
+        filter_apply(&ret, &ret_errno);
+    }
     errno = ret_errno;
     
     return ret;
