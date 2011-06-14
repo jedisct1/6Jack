@@ -7,10 +7,12 @@ lib6jack_la_SOURCES = \
 	common.h \
 	filter.c \
 	filter.h \
+	hook-bind.c \
+	hook-bind.h \
 	hook-close.c \
 	hook-close.h \
-	hook-connect-bind.c \
-	hook-connect-bind.h \
+	hook-connect.c \
+	hook-connect.h \
 	hook-socket.c \
 	hook-socket.h \
 	hooks.c \
