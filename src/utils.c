@@ -113,9 +113,9 @@ int get_name_info(const struct sockaddr_storage * const sa,
         return -1;
     }
     if (sa->ss_family == AF_INET) {
-        *port = ((struct sockaddr_in *) sa)->sin_port;
+        *port = ntohs(((struct sockaddr_in *) sa)->sin_port);
     } else if (sa->ss_family == AF_INET6) {
-        *port = ((struct sockaddr_in6 *) sa)->sin6_port;
+        *port = ntohs(((struct sockaddr_in6 *) sa)->sin6_port);
     }
     return 0;
 }

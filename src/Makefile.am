@@ -9,8 +9,8 @@ lib6jack_la_SOURCES = \
 	filter.h \
 	hook-close.c \
 	hook-close.h \
-	hook-connect.c \
-	hook-connect.h \
+	hook-connect-bind.c \
+	hook-connect-bind.h \
 	hook-socket.c \
 	hook-socket.h \
 	hooks.c \
@@ -53,7 +53,7 @@ do_subst = \
 	sed -e 's,[@]DESTDIR[@],$(DISTDIR),g' \
 		-e 's,[@]datadir[@],$(datadir),g' \
 		-e 's,[@]libdir[@],$(libdir),g' \
-		-e 's,[@]lib_LTLIBRARIES[@],$(lib_LTLIBRARIES),g' \        
+		-e 's,[@]lib_LTLIBRARIES[@],$(lib_LTLIBRARIES),g' \
 		-e 's,[@]PACKAGE[@],$(PACKAGE),g' \
 		-e 's,[@]VERSION[@],$(VERSION),g'
 

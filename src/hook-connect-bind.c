@@ -4,16 +4,18 @@
 
 #include "common.h"
 #include "filter.h"
-#include "hook-connect.h"
+#include "hook-connect-bind.h"
 
 int (* __real_connect)(int fd, const struct sockaddr *sa, socklen_t sa_len);
+int (* __real_bind)(int fd, const struct sockaddr *sa, socklen_t sa_len);
 
 static FilterReplyResult filter_parse_reply(Filter * const filter,
                                             int * const ret,
                                             int * const ret_errno,
                                             const int fd,
                                             struct sockaddr_storage * const sa,
-                                            socklen_t * const sa_len)
+                                            socklen_t * const sa_len,
+                                            const bool is_connect)
 {
     msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
@@ -28,7 +30,11 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
         struct addrinfo *ai, hints;
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_UNSPEC;
-        hints.ai_flags = AI_ADDRCONFIG | NI_NUMERICHOST;
+        if (is_connect == false) {
+            hints.ai_flags = NI_NUMERICHOST | AI_ADDRCONFIG;
+        } else {
+            hints.ai_flags = NI_NUMERICHOST | AI_PASSIVE;
+        }
         char new_remote_host[NI_MAXHOST];
         memcpy(new_remote_host, obj_remote_host->via.raw.ptr,
                obj_remote_host->via.raw.size);
@@ -65,10 +71,10 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
             obj_remote_port->via.i64 <= 65535) {            
             if (sa->ss_family == AF_INET) {
                 ((struct sockaddr_in *) sa)->sin_port =
-                    (in_port_t) obj_remote_port->via.i64;
+                    htons((in_port_t) obj_remote_port->via.i64);
             } else if (sa->ss_family == AF_INET6) {
                 ((struct sockaddr_in6 *) sa)->sin6_port =
-                    (in_port_t) obj_remote_port->via.i64;
+                    htons((in_port_t) obj_remote_port->via.i64);
             }
         }
     }
@@ -79,16 +85,22 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
 static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       int * const ret_errno, const int fd,
                                       struct sockaddr_storage * const sa,
-                                      socklen_t * const sa_len)
+                                      socklen_t * const sa_len,
+                                      const bool is_connect)
 {
     Filter * const filter = filter_get();
-    filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
-                        NULL, (socklen_t) 0U, sa, *sa_len);
-
+    if (is_connect) {
+        filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
+                            NULL, (socklen_t) 0U, sa, *sa_len);
+    } else {
+        filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "bind",
+                            sa, *sa_len, NULL, (socklen_t) 0U);
+    }
     if (filter_send_message(filter) != 0) {
         return -1;
     }    
-    return filter_parse_reply(filter, ret, ret_errno, fd, sa, sa_len);
+    return filter_parse_reply(filter, ret, ret_errno, fd, sa, sa_len,
+                              is_connect);
 }
 
 int __real_connect_init(void)
@@ -99,6 +111,19 @@ int __real_connect_init(void)
     if (__real_connect == NULL) {
         __real_connect = dlsym(RTLD_NEXT, "connect");        
         assert(__real_connect != NULL);        
+    }
+#endif
+    return 0;
+}
+
+int __real_bind_init(void)
+{
+#ifdef USE_INTERPOSERS
+    __real_bind = bind;
+#else
+    if (__real_bind == NULL) {
+        __real_bind = dlsym(RTLD_NEXT, "bind");
+        assert(__real_bind != NULL);        
     }
 #endif
     return 0;
@@ -116,7 +141,7 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
     assert(sa_len <= sizeof sa_);
     memcpy(&sa_, sa, sa_len);
     if (bypass_filter == false &&
-        filter_apply(true, &ret, &ret_errno, fd, &sa_, &sa_len_)
+        filter_apply(true, &ret, &ret_errno, fd, &sa_, &sa_len_, true)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
@@ -125,7 +150,35 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
         ret_errno = errno;
     }
     if (bypass_filter == false) {
-        filter_apply(false, &ret, &ret_errno, fd, &sa_, &sa_len_);
+        filter_apply(false, &ret, &ret_errno, fd, &sa_, &sa_len_, true);
+    }
+    errno = ret_errno;
+    
+    return ret;
+}
+
+int INTERPOSE(bind)(int fd, const struct sockaddr *sa, socklen_t sa_len)
+{
+    __real_bind_init();
+    const bool bypass_filter = getenv("SIXJACK_BYPASS") != NULL;
+    int ret = 0;
+    int ret_errno = 0;    
+    bool bypass_call = false;
+    struct sockaddr_storage sa_;
+    socklen_t sa_len_ = sa_len;
+    assert(sa_len <= sizeof sa_);
+    memcpy(&sa_, sa, sa_len);
+    if (bypass_filter == false &&
+        filter_apply(true, &ret, &ret_errno, fd, &sa_, &sa_len_, false)
+        == FILTER_REPLY_BYPASS) {
+        bypass_call = true;
+    }
+    if (bypass_call == false) {
+        ret = __real_bind(fd, (struct sockaddr *) &sa_, sa_len_);
+        ret_errno = errno;
+    }
+    if (bypass_filter == false) {
+        filter_apply(false, &ret, &ret_errno, fd, &sa_, &sa_len_, false);
     }
     errno = ret_errno;
     
