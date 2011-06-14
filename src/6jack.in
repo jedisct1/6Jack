@@ -1,12 +1,12 @@
 #! /bin/sh
 # @PACKAGE@ @VERSION@
 
-if [ $# = 0 ]; then
+if [ $# -lt 2 ]; then
   cat<<EOT
 
 @PACKAGE@ v@VERSION@
 
-Usage: ${0} <command> [args]
+Usage: ${0} <filter> <command> [args]
 
 EOT
   exit 1
@@ -23,6 +23,7 @@ LD_PRELOAD="${LD_PRELOAD:+:}${EXTRA_LIBRARIES}"
 export LD_PRELOAD
 DYLD_INSERT_LIBRARIES="${DYLD_INSERT_LIBRARIES:+:}${EXTRA_LIBRARIES}"
 export DYLD_INSERT_LIBRARIES
-
+export SIXJACK_FILTER="${1}"
+shift
 exec ${*}
 

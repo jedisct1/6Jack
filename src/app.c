@@ -12,6 +12,7 @@ AppContext *sixjack_get_context(void)
     if (context.initialized != 0) {
         return &context;
     }
+    setenv("SIXJACK_BYPASS", "BYPASS", 0);    
     context.pid = getpid();
     context.log_fd = -1;
     if (hooks_init() != 0) {
@@ -42,18 +43,20 @@ AppContext *sixjack_get_context(void)
                                       filter->upipe_stdout.fd_read);
     posix_spawn_file_actions_addclose(&file_actions,
                                       filter->upipe_stdout.fd_write);
-    setenv("SIXJACK_BYPASS", "BYPASS", 0);
-    ret = posix_spawn(&filter->pid, "./example-filter.rb",
+    const char * const filter_script = getenv("SIXJACK_FILTER");
+    if (filter_script == NULL) {
+        fputs("No filters specified\n", stderr);
+        exit(1);
+    }
+    ret = posix_spawn(&filter->pid, filter_script,
                       &file_actions, NULL, argv, environ);
     unsetenv("SIXJACK_BYPASS");
     if (ret != 0) {
         errno = ret;
-        perror("posix_spawn");
+        fprintf(stderr, "Unable to start filter [%s]: [%s]\n", filter_script,
+                strerror(errno));
         exit(1);
     }
-    printf("Parent PID = %u\n", getpid());    
-    printf("Child PID = %u\n", (unsigned int) filter->pid);
-        
     posix_spawn_file_actions_destroy(&file_actions);    
     filter->msgpack_sbuffer = msgpack_sbuffer_new();
     filter->msgpack_packer = msgpack_packer_new(filter->msgpack_sbuffer,
