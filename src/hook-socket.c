@@ -80,8 +80,10 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
-    if (bypass_filter == false) {
-        filter_apply(true, &ret, &ret_errno, &domain, &type, &protocol);
+    if (bypass_filter == false &&
+        filter_apply(true, &ret, &ret_errno, &domain, &type, &protocol)
+        == FILTER_REPLY_BYPASS) {
+        bypass_call = true;
     }
     if (bypass_call == false) {
         ret = __real_socket(domain, type, protocol);

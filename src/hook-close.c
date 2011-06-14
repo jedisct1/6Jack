@@ -15,9 +15,10 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
 {
     msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
-    filter_parse_common_reply_map(map, ret, ret_errno, fd);
+    FilterReplyResult reply_result =
+        filter_parse_common_reply_map(map, ret, ret_errno, fd);
     
-    return 0;
+    return reply_result;
 }
 
 static FilterReplyResult filter_apply(const bool pre,
@@ -69,9 +70,11 @@ int INTERPOSE(close)(int fd)
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
-    if (bypass_filter == false) {
+    if (bypass_filter == false &&
         filter_apply(true, &ret, &ret_errno, fd,
-                     sa_local_, sa_local_len, sa_remote_, sa_remote_len);
+                     sa_local_, sa_local_len, sa_remote_, sa_remote_len)
+        == FILTER_REPLY_BYPASS) {
+        bypass_call = true;
     }
     if (bypass_call == false) {
         ret = __real_close(fd);

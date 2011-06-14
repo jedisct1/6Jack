@@ -90,6 +90,16 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
             close(fd);
         }
     }    
+
+    const msgpack_object * const obj_bypass =
+        msgpack_get_map_value_for_key(map, "bypass");
+    if (obj_bypass != NULL) {
+        assert(obj_bypass->type == MSGPACK_OBJECT_BOOLEAN);
+        const bool bypass = obj_bypass->via.boolean;
+        if (bypass != false) {
+            return FILTER_REPLY_BYPASS;
+        }
+    }
     return FILTER_REPLY_PASS;
 }
 
