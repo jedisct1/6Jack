@@ -11,19 +11,50 @@ int (* __real_socket)(int domain, int type, int protocol);
 static FilterReplyResult filter_parse_reply(Filter * const filter,
                                             int * const ret,
                                             int * const ret_errno,
-                                            const int fd)
+                                            const int fd, int * const domain,
+                                            int * const type,
+                                            int * const protocol)
 {
     msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
     filter_parse_common_reply_map(map, ret, ret_errno, fd);
     
+    const msgpack_object * const obj_domain =
+        msgpack_get_map_value_for_key(map, "domain");    
+    int new_domain;    
+    if (obj_domain != NULL && obj_domain->type == MSGPACK_OBJECT_RAW &&
+        idn_find_id_from_name(idn_get_pf_domains(), &new_domain,
+                              obj_domain->via.raw.ptr,
+                              (size_t) obj_domain->via.raw.size) == 0) {
+        *domain = new_domain;
+    }
+
+    const msgpack_object * const obj_type =
+        msgpack_get_map_value_for_key(map, "type");
+    int new_type;    
+    if (obj_type != NULL && obj_type->type == MSGPACK_OBJECT_RAW &&
+        idn_find_id_from_name(idn_get_sock_types(), &new_type,
+                              obj_type->via.raw.ptr,
+                              (size_t) obj_type->via.raw.size) == 0) {
+        *type = new_type;
+    }
+
+    const msgpack_object * const obj_protocol =
+        msgpack_get_map_value_for_key(map, "protocol");
+    int new_protocol;
+    if (obj_protocol != NULL && obj_protocol->type == MSGPACK_OBJECT_RAW &&
+        idn_find_id_from_name(idn_get_ip_protos(), &new_protocol,
+                              obj_protocol->via.raw.ptr,
+                              (size_t) obj_protocol->via.raw.size) == 0) {
+        *protocol = new_protocol;
+    }    
     return 0;
 }
 
 static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       int * const ret_errno,
-                                      const int *domain, const int *type,
-                                      const int *protocol)
+                                      int * const domain, int * const type,
+                                      int * const protocol)
 {
     Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
@@ -56,8 +87,8 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
     if (filter_send_message(filter) != 0) {
         return -1;
     }
-    (void) pre;
-    return filter_parse_reply(filter, ret, ret_errno, fd);
+    return filter_parse_reply(filter, ret, ret_errno, fd,
+                              domain, type, protocol);
 }
 
 int __real_socket_init(void)
