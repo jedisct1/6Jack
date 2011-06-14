@@ -34,7 +34,7 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                obj_remote_host->via.raw.size);
         new_remote_host[obj_remote_host->via.raw.size] = 0;
         const int gai_err = getaddrinfo(new_remote_host, NULL, &hints, &ai);
-        if (gai_err != 0) {
+        if (gai_err == 0) {
             assert(ai->ai_addrlen <= sizeof *sa);
             if (ai->ai_family == AF_INET) {
                 assert((size_t) ai->ai_addrlen >=
@@ -71,7 +71,7 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                obj_remote_port->via.raw.size);
         new_remote_port[obj_remote_port->via.raw.size] = 0;
         const int gai_err = getaddrinfo(NULL, new_remote_port, &hints, &ai);
-        if (gai_err != 0) {
+        if (gai_err == 0) {
             assert(ai->ai_family == AF_INET);
             if (sa->ss_family == AF_INET) {
                 ((struct sockaddr_in *) sa)->sin_port =
