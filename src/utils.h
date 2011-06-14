@@ -20,7 +20,8 @@ ssize_t safe_read_partial(const int fd, void * const buf_,
 
 bool is_socket(const int fd);
 
-int get_name_info(const struct sockaddr * const sa, const socklen_t sa_len,
+int get_name_info(const struct sockaddr_storage * const sa,
+                  const socklen_t sa_len,
                   char host[NI_MAXHOST], char port[NI_MAXSERV]);
 
 int get_sock_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV]);

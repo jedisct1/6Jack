@@ -18,15 +18,15 @@ static int filter_parse_reply(Filter * const filter, int * const ret,
     return 0;
 }
 
-static int filter_apply(int * const ret, int * const ret_errno,
-                        const int fd, const struct sockaddr * const sa,
-                        const socklen_t sa_len)
+static int filter_apply(const bool pre, int * const ret, int * const ret_errno,
+                        const int fd, struct sockaddr_storage * const sa,
+                        socklen_t * const sa_len)
 {
     (void) sa;
     (void) sa_len;
     Filter * const filter = filter_get();
-    filter_before_apply(*ret, *ret_errno, fd, 0U, "connect",
-                        NULL, (socklen_t) 0U, sa, sa_len);
+    filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
+                        NULL, (socklen_t) 0U, sa, *sa_len);
 
     if (filter_send_message(filter) != 0) {
         return -1;
@@ -51,10 +51,22 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
 {
     __real_connect_init();
     const bool bypass_filter = getenv("SIXJACK_BYPASS") != NULL;
-    int ret = __real_connect(fd, sa, sa_len);
-    int ret_errno = errno;
+    int ret = 0;
+    int ret_errno = 0;    
+    bool bypass_call = false;
+    struct sockaddr_storage sa_;
+    socklen_t sa_len_ = sa_len;
+    assert(sa_len <= sizeof sa_);
+    memcpy(&sa_, sa, sa_len);
     if (bypass_filter == false) {
-        filter_apply(&ret, &ret_errno, fd, sa, sa_len);
+        filter_apply(true, &ret, &ret_errno, fd, &sa_, &sa_len_);
+    }
+    if (bypass_call == false) {
+        ret = __real_connect(fd, (struct sockaddr *) &sa_, sa_len_);
+        ret_errno = errno;
+    }
+    if (bypass_filter == false) {
+        filter_apply(false, &ret, &ret_errno, fd, &sa_, &sa_len_);
     }
     errno = ret_errno;
     

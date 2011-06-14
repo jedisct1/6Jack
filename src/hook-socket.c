@@ -18,22 +18,22 @@ static int filter_parse_reply(Filter * const filter, int * const ret,
     return 0;
 }
 
-static int filter_apply(int * const ret, int * const ret_errno,
-                        const int domain, const int type,
-                        const int protocol)
+static int filter_apply(const bool pre, int * const ret, int * const ret_errno,
+                        const int *domain, const int *type,
+                        const int *protocol)
 {
     Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
     const int fd = *ret;    
-    filter_before_apply(*ret, *ret_errno, fd, 3U, "socket",
+    filter_before_apply(pre, *ret, *ret_errno, fd, 3U, "socket",
                         NULL, (socklen_t) 0U, NULL, (socklen_t) 0U);
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
     const char * const domain_name =
-        idn_find_name_from_id(idn_get_pf_domains(), domain);
+        idn_find_name_from_id(idn_get_pf_domains(), *domain);
     msgpack_pack_cstring_or_nil(msgpack_packer, domain_name);
     
-    int type_ = type;
+    int type_ = *type;
 #ifdef SOCK_NONBLOCK
     type_ &= ~SOCK_NONBLOCK;
 #endif
@@ -47,12 +47,13 @@ static int filter_apply(int * const ret, int * const ret_errno,
     
     msgpack_pack_mstring(msgpack_packer, "protocol");
     const char * const protocol_name =
-        idn_find_name_from_id(idn_get_ip_protos(), protocol);
+        idn_find_name_from_id(idn_get_ip_protos(), *protocol);
     msgpack_pack_cstring_or_nil(msgpack_packer, protocol_name);
     
     if (filter_send_message(filter) != 0) {
         return -1;
-    }    
+    }
+    (void) pre;
     return filter_parse_reply(filter, ret, ret_errno, fd);
 }
 
@@ -73,10 +74,18 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
 {
     __real_socket_init();
     const bool bypass_filter = getenv("SIXJACK_BYPASS") != NULL;
-    int ret = __real_socket(domain, type, protocol);
-    int ret_errno = errno;
+    int ret = 0;
+    int ret_errno = 0;    
+    bool bypass_call = false;
     if (bypass_filter == false) {
-        filter_apply(&ret, &ret_errno, domain, type, protocol);
+        filter_apply(true, &ret, &ret_errno, &domain, &type, &protocol);
+    }
+    if (bypass_call == false) {
+        ret = __real_socket(domain, type, protocol);
+        ret_errno = errno;
+    }
+    if (bypass_filter == false) {
+        filter_apply(false, &ret, &ret_errno, &domain, &type, &protocol);
     }
     errno = ret_errno;
     

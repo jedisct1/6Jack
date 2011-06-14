@@ -93,12 +93,13 @@ int filter_parse_common_reply_map(const msgpack_object_map * const map,
     return 0;
 }
 
-int filter_before_apply(const int ret, const int ret_errno, const int fd,
+int filter_before_apply(const bool pre,
+                        const int ret, const int ret_errno, const int fd,
                         const unsigned int nongeneric_items,
                         const char * const function,
-                        const struct sockaddr * const sa_local,
+                        const struct sockaddr_storage * const sa_local,
                         const socklen_t sa_local_len,
-                        const struct sockaddr * const sa_remote,
+                        const struct sockaddr_storage * const sa_remote,
                         const socklen_t sa_remote_len)
 {
     Filter * const filter = filter_get();
@@ -107,7 +108,7 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    unsigned int items_count = nongeneric_items + 6U;
+    unsigned int items_count = nongeneric_items + 7U;
     if (sa_local != NULL) {
         items_count += 2U;
     }
@@ -118,6 +119,9 @@ int filter_before_apply(const int ret, const int ret_errno, const int fd,
     
     msgpack_pack_mstring(msgpack_packer, "version");
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
+    
+    msgpack_pack_mstring(msgpack_packer, "filter_type");
+    msgpack_pack_cstring(msgpack_packer, pre ? "PRE" : "POST");
     
     msgpack_pack_mstring(msgpack_packer, "pid");
     msgpack_pack_unsigned_int(msgpack_packer, context->pid);

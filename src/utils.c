@@ -101,10 +101,12 @@ bool is_socket(const int fd)
     return (bool) S_ISSOCK(st.st_mode);
 }
 
-int get_name_info(const struct sockaddr * const sa, const socklen_t sa_len,
+int get_name_info(const struct sockaddr_storage * const sa,
+                  const socklen_t sa_len,
                   char host[NI_MAXHOST], char port[NI_MAXSERV])
 {
-    if (getnameinfo(sa, sa_len, host, NI_MAXHOST, port, NI_MAXSERV,
+    if (getnameinfo((struct sockaddr *) sa, sa_len,
+                    host, NI_MAXHOST, port, NI_MAXSERV,
                     NI_NUMERICHOST | NI_NUMERICSERV) != 0) {
         host[0] = port[0] = 0;                        
         return -1;
@@ -119,7 +121,7 @@ int get_sock_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
     if (getsockname(fd, (struct sockaddr *) &sa, &sa_len) != 0) {
         return -1;
     }    
-    return get_name_info((struct sockaddr *) &sa, sa_len, host, port);
+    return get_name_info(&sa, sa_len, host, port);
 }
 
 int get_peer_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
@@ -129,5 +131,5 @@ int get_peer_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
     if (getpeername(fd, (struct sockaddr *) &sa, &sa_len) != 0) {
         return -1;
     }    
-    return get_name_info((struct sockaddr *) &sa, sa_len, host, port);
+    return get_name_info(&sa, sa_len, host, port);
 }
