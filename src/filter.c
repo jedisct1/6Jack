@@ -43,8 +43,6 @@ msgpack_unpacked *filter_receive_message(Filter * const filter)
         }
         msgpack_unpacker_buffer_consumed(msgpack_unpacker, readnb);
     }
-    msgpack_object_print(stdout, message->data);
-    puts("");
     assert(message->data.type == MSGPACK_OBJECT_MAP);
     
     return message;
