@@ -146,26 +146,23 @@ int filter_before_apply(const bool pre,
     msgpack_pack_mstring(msgpack_packer, "fd");
     msgpack_pack_int(msgpack_packer, fd);    
 
-    char host[NI_MAXHOST], port[NI_MAXSERV];
-    char *host_ = host, *port_ = port;
-    
+    char host[NI_MAXHOST];
+    in_port_t port;    
     if (sa_local != NULL) {
-        if (get_name_info(sa_local, sa_local_len, host, port) != 0) {
-            host_ = port_ = NULL;            
+        if (get_name_info(sa_local, sa_local_len, host, &port) == 0) {
+            msgpack_pack_mstring(msgpack_packer, "local_host");
+            msgpack_pack_cstring_or_nil(msgpack_packer, host);
+            msgpack_pack_mstring(msgpack_packer, "local_port");
+            msgpack_pack_unsigned_short(msgpack_packer, (unsigned short) port);
         }
-        msgpack_pack_mstring(msgpack_packer, "local_host");
-        msgpack_pack_cstring_or_nil(msgpack_packer, host_);
-        msgpack_pack_mstring(msgpack_packer, "local_port");
-        msgpack_pack_cstring_or_nil(msgpack_packer, port_);        
     }
     if (sa_remote != NULL) {
-        if (get_name_info(sa_remote, sa_remote_len, host, port) != 0) {
-            host_ = port_ = NULL;            
+        if (get_name_info(sa_remote, sa_remote_len, host, &port) == 0) {
+            msgpack_pack_mstring(msgpack_packer, "remote_host");
+            msgpack_pack_cstring_or_nil(msgpack_packer, host);
+            msgpack_pack_mstring(msgpack_packer, "remote_port");
+            msgpack_pack_unsigned_short(msgpack_packer, (unsigned short) port);
         }
-        msgpack_pack_mstring(msgpack_packer, "remote_host");
-        msgpack_pack_cstring_or_nil(msgpack_packer, host_);
-        msgpack_pack_mstring(msgpack_packer, "remote_port");
-        msgpack_pack_cstring_or_nil(msgpack_packer, port_);
     }
     return 0;
 }

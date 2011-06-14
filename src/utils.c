@@ -103,18 +103,24 @@ bool is_socket(const int fd)
 
 int get_name_info(const struct sockaddr_storage * const sa,
                   const socklen_t sa_len,
-                  char host[NI_MAXHOST], char port[NI_MAXSERV])
+                  char host[NI_MAXHOST], in_port_t * const port)
 {
+    *port = (in_port_t) 0U;
     if (getnameinfo((struct sockaddr *) sa, sa_len,
-                    host, NI_MAXHOST, port, NI_MAXSERV,
-                    NI_NUMERICHOST | NI_NUMERICSERV) != 0) {
-        host[0] = port[0] = 0;                        
+                    host, NI_MAXHOST, NULL, (size_t) 0U,
+                    NI_NUMERICHOST) != 0) {
+        host[0] = 0;
         return -1;
+    }
+    if (sa->ss_family == AF_INET) {
+        *port = ((struct sockaddr_in *) sa)->sin_port;
+    } else if (sa->ss_family == AF_INET6) {
+        *port = ((struct sockaddr_in6 *) sa)->sin6_port;
     }
     return 0;
 }
 
-int get_sock_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
+int get_sock_info(const int fd, char host[NI_MAXHOST], in_port_t * const port)
 {
     struct sockaddr_storage sa;
     socklen_t sa_len = sizeof sa;
@@ -124,7 +130,7 @@ int get_sock_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
     return get_name_info(&sa, sa_len, host, port);
 }
 
-int get_peer_info(const int fd, char host[NI_MAXHOST], char port[NI_MAXSERV])
+int get_peer_info(const int fd, char host[NI_MAXHOST], in_port_t * const port)
 {
     struct sockaddr_storage sa;
     socklen_t sa_len = sizeof sa;
