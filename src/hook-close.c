@@ -64,7 +64,7 @@ int INTERPOSE(close)(int fd)
     }
     struct sockaddr_storage sa_remote, *sa_remote_ = &sa_remote;
     socklen_t sa_remote_len = sizeof sa_remote;
-    if (getsockname(fd, (struct sockaddr *) &sa_remote, &sa_remote_len) != 0) {
+    if (getpeername(fd, (struct sockaddr *) &sa_remote, &sa_remote_len) != 0) {
         sa_remote_ = NULL;
     }
     int ret = 0;
