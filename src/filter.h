@@ -19,6 +19,12 @@ typedef struct Filter_ {
     pid_t pid;
 } Filter;
 
+typedef enum FilterReplyResult_ {
+    FILTER_REPLY_RESULT_ERROR = -1,
+    FILTER_REPLY_PASS = 0,
+    FILTER_REPLY_BYPASS = 1
+} FilterReplyResult;
+
 Filter *filter_get(void);
 
 int filter_before_apply(const bool pre,
@@ -34,7 +40,8 @@ int filter_send_message(Filter * const filter);
 
 msgpack_unpacked *filter_receive_message(Filter * const filter);
 
-int filter_parse_common_reply_map(const msgpack_object_map * const map,
-                                  int * const ret, int * const ret_errno,
-                                  const int fd);
+FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const map,
+                                                int * const ret,
+                                                int * const ret_errno,
+                                                const int fd);
 #endif

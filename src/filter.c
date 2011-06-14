@@ -50,9 +50,10 @@ msgpack_unpacked *filter_receive_message(Filter * const filter)
     return message;
 }
 
-int filter_parse_common_reply_map(const msgpack_object_map * const map,
-                                  int * const ret, int * const ret_errno,
-                                  const int fd)
+FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const map,
+                                                int * const ret,
+                                                int * const ret_errno,
+                                                const int fd)
 {
     const msgpack_object * const obj_version =
         msgpack_get_map_value_for_key(map, "version");
@@ -88,9 +89,8 @@ int filter_parse_common_reply_map(const msgpack_object_map * const map,
         if (force_close != false) {
             close(fd);
         }
-    }
-    
-    return 0;
+    }    
+    return FILTER_REPLY_PASS;
 }
 
 int filter_before_apply(const bool pre,

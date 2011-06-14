@@ -8,8 +8,10 @@
 
 int (* __real_socket)(int domain, int type, int protocol);
 
-static int filter_parse_reply(Filter * const filter, int * const ret,
-                              int * const ret_errno, const int fd)
+static FilterReplyResult filter_parse_reply(Filter * const filter,
+                                            int * const ret,
+                                            int * const ret_errno,
+                                            const int fd)
 {
     msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
@@ -18,9 +20,10 @@ static int filter_parse_reply(Filter * const filter, int * const ret,
     return 0;
 }
 
-static int filter_apply(const bool pre, int * const ret, int * const ret_errno,
-                        const int *domain, const int *type,
-                        const int *protocol)
+static FilterReplyResult filter_apply(const bool pre, int * const ret,
+                                      int * const ret_errno,
+                                      const int *domain, const int *type,
+                                      const int *protocol)
 {
     Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
