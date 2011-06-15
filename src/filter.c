@@ -116,7 +116,10 @@ int filter_before_apply(const bool pre,
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
-    unsigned int items_count = nongeneric_items + 7U;
+    unsigned int items_count = nongeneric_items + 5U;
+    if (pre == false) {
+        items_count += 2U;
+    }
     if (sa_local != NULL) {
         items_count += 2U;
     }
@@ -137,15 +140,17 @@ int filter_before_apply(const bool pre,
     msgpack_pack_mstring(msgpack_packer, "function");
     msgpack_pack_cstring(msgpack_packer, function);
 
-    msgpack_pack_mstring(msgpack_packer, "return_code");
-    msgpack_pack_int(msgpack_packer, ret);
-    
-    msgpack_pack_mstring(msgpack_packer, "errno");
-    msgpack_pack_int(msgpack_packer, ret_errno);
-
     msgpack_pack_mstring(msgpack_packer, "fd");
     msgpack_pack_int(msgpack_packer, fd);    
 
+    if (pre == false) {
+        msgpack_pack_mstring(msgpack_packer, "return_code");
+        msgpack_pack_int(msgpack_packer, ret);
+        
+        msgpack_pack_mstring(msgpack_packer, "errno");
+        msgpack_pack_int(msgpack_packer, ret_errno);
+    }
+    
     char host[NI_MAXHOST];
     in_port_t port;    
     if (sa_local != NULL) {
