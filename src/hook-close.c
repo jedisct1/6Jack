@@ -35,7 +35,7 @@ static FilterReplyResult filter_apply(const bool pre,
     
     if (filter_send_message(filter) != 0) {
         return -1;
-    }    
+    }
     return filter_parse_reply(filter, ret, ret_errno, fd);
 }
 
