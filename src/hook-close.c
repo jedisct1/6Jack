@@ -58,15 +58,9 @@ int INTERPOSE(close)(int fd)
     const bool bypass_filter =
         getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
-    socklen_t sa_local_len = sizeof sa_local;    
-    if (getsockname(fd, (struct sockaddr *) &sa_local, &sa_local_len) != 0) {
-        sa_local_ = NULL;
-    }
     struct sockaddr_storage sa_remote, *sa_remote_ = &sa_remote;
-    socklen_t sa_remote_len = sizeof sa_remote;
-    if (getpeername(fd, (struct sockaddr *) &sa_remote, &sa_remote_len) != 0) {
-        sa_remote_ = NULL;
-    }
+    socklen_t sa_local_len, sa_remote_len;
+    get_sock_info(fd, &sa_local_, &sa_local_len, &sa_remote_, &sa_remote_len);
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;

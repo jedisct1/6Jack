@@ -54,6 +54,7 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                 *sa_len = sa->ss_len = ai->ai_addrlen;
                 sa->ss_family = ai->ai_family;
             }
+            freeaddrinfo(ai);
         }
     }    
 
@@ -82,8 +83,11 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       socklen_t * const sa_len)
 {
     Filter * const filter = filter_get();
+    struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
+    socklen_t sa_local_len;
+    get_sock_info(fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);    
     filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
-                        NULL, (socklen_t) 0U, sa, *sa_len);
+                        sa_local_, sa_local_len, sa, *sa_len);
     if (filter_send_message(filter) != 0) {
         return -1;
     }    
@@ -130,4 +134,3 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
     
     return ret;
 }
-

@@ -54,6 +54,7 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                 *sa_len = sa->ss_len = ai->ai_addrlen;
                 sa->ss_family = ai->ai_family;
             }
+            freeaddrinfo(ai);
         }
     }    
 

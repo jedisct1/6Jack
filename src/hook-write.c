@@ -13,7 +13,7 @@ static FilterReplyResult filter_parse_reply(const bool pre,
                                             int * const ret,
                                             int * const ret_errno,
                                             const int fd,
-                                            const void ** const buf,
+                                            const void * * const buf,
                                             size_t * const nbyte)
 {
     msgpack_unpacked * const message = filter_receive_message(filter);
@@ -35,7 +35,7 @@ static FilterReplyResult filter_parse_reply(const bool pre,
 
 static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       int * const ret_errno, const int fd,
-                                      const void ** const buf,
+                                      const void * * const buf,
                                       size_t * const nbyte)
 {
     Filter * const filter = filter_get();
@@ -70,6 +70,10 @@ ssize_t INTERPOSE(write)(int fd, const void *buf, size_t nbyte)
     __real_write_init();
     const bool bypass_filter =
         getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
+        struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
+    struct sockaddr_storage sa_remote, *sa_remote_ = &sa_remote;
+    socklen_t sa_local_len, sa_remote_len;
+    get_sock_info(fd, &sa_local_, &sa_local_len, &sa_remote_, &sa_remote_len);
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;

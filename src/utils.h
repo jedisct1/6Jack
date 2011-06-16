@@ -24,7 +24,10 @@ int get_name_info(const struct sockaddr_storage * const sa,
                   const socklen_t sa_len,
                   char host[NI_MAXHOST], in_port_t * const port);
 
-int get_sock_info(const int fd, char host[NI_MAXHOST], in_port_t * const port);
-int get_peer_info(const int fd, char host[NI_MAXHOST], in_port_t * const port);
+int get_sock_info(const int fd,
+                  struct sockaddr_storage * * const sa_local,
+                  socklen_t * const sa_local_len,
+                  struct sockaddr_storage * * const sa_remote,
+                  socklen_t * const sa_remote_len);
 
 #endif

@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <syslog.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/stat.h>

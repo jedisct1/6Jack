@@ -120,22 +120,29 @@ int get_name_info(const struct sockaddr_storage * const sa,
     return 0;
 }
 
-int get_sock_info(const int fd, char host[NI_MAXHOST], in_port_t * const port)
+int get_sock_info(const int fd,
+                  struct sockaddr_storage * * const sa_local,
+                  socklen_t * const sa_local_len,
+                  struct sockaddr_storage * * const sa_remote,
+                  socklen_t * const sa_remote_len)
 {
-    struct sockaddr_storage sa;
-    socklen_t sa_len = sizeof sa;
-    if (getsockname(fd, (struct sockaddr *) &sa, &sa_len) != 0) {
-        return -1;
-    }    
-    return get_name_info(&sa, sa_len, host, port);
-}
-
-int get_peer_info(const int fd, char host[NI_MAXHOST], in_port_t * const port)
-{
-    struct sockaddr_storage sa;
-    socklen_t sa_len = sizeof sa;
-    if (getpeername(fd, (struct sockaddr *) &sa, &sa_len) != 0) {
-        return -1;
-    }    
-    return get_name_info(&sa, sa_len, host, port);
+    int ret = 0;
+    
+    if (sa_local_len != NULL && sa_local != NULL) {
+        *sa_local_len = sizeof **sa_local;
+        if (getsockname(fd, (struct sockaddr *) *sa_local,
+                        sa_local_len) != 0) {
+            *sa_local = NULL;
+            ret--;
+        }
+    }
+    if (sa_remote_len != NULL && sa_remote != NULL) {
+        *sa_remote_len = sizeof **sa_remote;
+        if (getpeername(fd, (struct sockaddr *) *sa_remote,
+                        sa_remote_len) != 0) {
+            *sa_remote = NULL;
+            ret--;
+        }
+    }
+    return ret;
 }
