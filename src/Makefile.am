@@ -17,6 +17,8 @@ lib6jack_la_SOURCES = \
 	hook-read.h \
 	hook-socket.c \
 	hook-socket.h \
+	hook-write.c \
+	hook-write.h \
 	hooks.c \
 	hooks.h \
 	id-name.c \

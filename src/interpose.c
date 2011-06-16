@@ -6,10 +6,11 @@
 #ifdef USE_INTERPOSERS
 DLL_PUBLIC const struct { void *hook_func; void *real_func; }
 sixjack_interposers[] __attribute__ ((section("__DATA, __interpose"))) = {
+    { INTERPOSE(bind), bind },
     { INTERPOSE(close), close },
     { INTERPOSE(connect), connect },
-    { INTERPOSE(bind), bind },    
-    { INTERPOSE(socket), socket },
     { INTERPOSE(read), read },
+    { INTERPOSE(socket), socket },
+    { INTERPOSE(write), write },
 };
 #endif
