@@ -44,12 +44,16 @@ static FilterReplyResult filter_parse_reply(const bool pre,
 
 static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       int * const ret_errno, const int fd,
+                                      const struct sockaddr_storage * const sa_local,
+                                      const socklen_t sa_local_len,
+                                      const struct sockaddr_storage * const sa_remote,
+                                      const socklen_t sa_remote_len,
                                       void *buf, size_t * const nbyte)
 {
     Filter * const filter = filter_get();
     msgpack_packer * const msgpack_packer = filter->msgpack_packer;
     filter_before_apply(pre, *ret, *ret_errno, fd, 1U, "read",
-                        NULL, (socklen_t) 0U, NULL, (socklen_t) 0U);
+                        sa_local, sa_local_len, sa_remote, sa_remote_len);
     
     if (pre != false) {
         msgpack_pack_mstring(msgpack_packer, "nbyte");
@@ -96,7 +100,8 @@ ssize_t INTERPOSE(read)(int fd, void *buf, size_t nbyte)
     bool bypass_call = false;
     size_t new_nbyte = nbyte;
     if (bypass_filter == false &&
-        filter_apply(true, &ret, &ret_errno, fd, NULL, &new_nbyte)
+        filter_apply(true, &ret, &ret_errno, fd, sa_local_, sa_local_len,
+                     sa_remote_, sa_remote_len, NULL, &new_nbyte)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
@@ -107,7 +112,8 @@ ssize_t INTERPOSE(read)(int fd, void *buf, size_t nbyte)
         assert((ssize_t) ret_ == ret);
     }
     if (bypass_filter == false) {
-        filter_apply(false, &ret, &ret_errno, fd, buf, &new_nbyte);
+        filter_apply(false, &ret, &ret_errno, fd, sa_local_, sa_local_len,
+                     sa_remote_, sa_remote_len, buf, &new_nbyte);
     }
     errno = ret_errno;
     
