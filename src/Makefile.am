@@ -13,6 +13,8 @@ lib6jack_la_SOURCES = \
 	hook-close.h \
 	hook-connect.c \
 	hook-connect.h \
+	hook-read.c \
+	hook-read.h \
 	hook-socket.c \
 	hook-socket.h \
 	hooks.c \
