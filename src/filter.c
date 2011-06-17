@@ -195,7 +195,9 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
         const int gai_err = getaddrinfo(new_host, NULL, &hints, &ai);
         if (gai_err == 0) {
             assert(ai->ai_addrlen <= sizeof *sa);
-            if (ai->ai_family == AF_INET) {
+            if (ai->ai_family == AF_INET &&
+                *sa_len >= (socklen_t)
+                sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr)) {
                 assert((size_t) ai->ai_addrlen >=
                        sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
                 memcpy(&((struct sockaddr_in *) sa)->sin_addr.s_addr,
@@ -204,7 +206,9 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
                 *sa_len = sa->ss_len = ai->ai_addrlen;
                 sa->ss_family = ai->ai_family;
                 sa->ss_len = ((struct sockaddr_storage *) ai->ai_addr)->ss_len;
-            } else if (ai->ai_family == AF_INET6) {
+            } else if (ai->ai_family == AF_INET6 &&
+                      *sa_len >= (socklen_t)
+                       sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr)) {
                 assert((size_t) ai->ai_addrlen >=
                        sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
                 memcpy(&((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr,
