@@ -7,6 +7,7 @@
 #include "hook-connect.h"
 #include "hook-read.h"
 #include "hook-recv.h"
+#include "hook-recvfrom.h"
 #include "hook-socket.h"
 #include "hook-write.h"
 

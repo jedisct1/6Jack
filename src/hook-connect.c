@@ -18,62 +18,9 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
     msgpack_unpacked * const message = filter_receive_message(filter);
     const msgpack_object_map * const map = &message->data.via.map;
     FilterReplyResult reply_result =
-        filter_parse_common_reply_map(map, ret, ret_errno, fd);
-    
-    const msgpack_object * const obj_remote_host =
-        msgpack_get_map_value_for_key(map, "remote_host");
-    if (obj_remote_host != NULL &&
-        obj_remote_host->type == MSGPACK_OBJECT_RAW &&
-        obj_remote_host->via.raw.size < NI_MAXHOST) {
-        struct addrinfo *ai, hints;
-        memset(&hints, 0, sizeof hints);
-        hints.ai_family = AF_UNSPEC;
-        hints.ai_flags = NI_NUMERICHOST | AI_ADDRCONFIG;
-        char new_remote_host[NI_MAXHOST];
-        memcpy(new_remote_host, obj_remote_host->via.raw.ptr,
-               obj_remote_host->via.raw.size);
-        new_remote_host[obj_remote_host->via.raw.size] = 0;
-        const int gai_err = getaddrinfo(new_remote_host, NULL, &hints, &ai);
-        if (gai_err == 0) {
-            assert(ai->ai_addrlen <= sizeof *sa);
-            if (ai->ai_family == AF_INET) {
-                assert((size_t) ai->ai_addrlen >=
-                       sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
-                memcpy(&((struct sockaddr_in *) sa)->sin_addr.s_addr,
-                       &((struct sockaddr_in *) ai->ai_addr)->sin_addr.s_addr,
-                       sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
-                *sa_len = sa->ss_len = ai->ai_addrlen;
-                sa->ss_family = ai->ai_family;
-                sa->ss_len = ((struct sockaddr_storage *) ai->ai_addr)->ss_len;
-            } else if (ai->ai_family == AF_INET6) {
-                assert((size_t) ai->ai_addrlen >=
-                       sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
-                memcpy(&((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr,
-                       &((struct sockaddr_in6 *) ai->ai_addr)->sin6_addr.s6_addr,
-                       sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
-                *sa_len = sa->ss_len = ai->ai_addrlen;
-                sa->ss_family = ai->ai_family;
-            }
-            freeaddrinfo(ai);
-        }
-    }    
-
-    const msgpack_object * const obj_remote_port =
-        msgpack_get_map_value_for_key(map, "remote_port");
-    if (obj_remote_port != NULL &&
-        obj_remote_port->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
-        if (obj_remote_port->via.i64 >= 0 &&
-            obj_remote_port->via.i64 <= 65535) {            
-            if (sa->ss_family == AF_INET) {
-                ((struct sockaddr_in *) sa)->sin_port =
-                    htons((in_port_t) obj_remote_port->via.i64);
-            } else if (sa->ss_family == AF_INET6) {
-                ((struct sockaddr_in6 *) sa)->sin6_port =
-                    htons((in_port_t) obj_remote_port->via.i64);
-            }
-        }
-    }
-    
+        filter_parse_common_reply_map(map, ret, ret_errno, fd);    
+    filter_overwrite_sa_with_reply_map(map, "remote_host", "remote_port",
+                                       sa, sa_len);
     return reply_result;
 }
 

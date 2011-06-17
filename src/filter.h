@@ -44,4 +44,10 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
                                                 int * const ret,
                                                 int * const ret_errno,
                                                 const int fd);
+
+int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
+                                       const char * const key_host,
+                                       const char * const key_port,
+                                       struct sockaddr_storage * const sa,
+                                       socklen_t * const sa_len);
 #endif
