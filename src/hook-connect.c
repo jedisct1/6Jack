@@ -36,7 +36,7 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
     filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
                         sa_local_, sa_local_len, sa, *sa_len);
     if (filter_send_message(filter) != 0) {
-        return -1;
+        return FILTER_REPLY_RESULT_ERROR;
     }    
     return filter_parse_reply(filter, ret, ret_errno, fd, sa, sa_len);
 }

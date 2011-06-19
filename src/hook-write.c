@@ -26,7 +26,7 @@ static FilterReplyResult filter_parse_reply(const bool pre,
     }
     const msgpack_object * const obj_data =
         msgpack_get_map_value_for_key(map, "data");
-    if (obj_data->type == MSGPACK_OBJECT_RAW) {
+    if (obj_data != NULL && obj_data->type == MSGPACK_OBJECT_RAW) {
         *buf = obj_data->via.raw.ptr;
         *nbyte = (size_t) obj_data->via.raw.size;
     }    
@@ -51,7 +51,7 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
     msgpack_pack_raw(msgpack_packer, *nbyte);
     msgpack_pack_raw_body(msgpack_packer, *buf, *nbyte);
     if (filter_send_message(filter) != 0) {
-        return -1;
+        return FILTER_REPLY_RESULT_ERROR;
     }
     return filter_parse_reply(pre, filter, ret, ret_errno, fd, buf, nbyte);
 }

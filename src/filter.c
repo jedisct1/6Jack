@@ -141,7 +141,7 @@ int filter_before_apply(const bool pre,
     msgpack_pack_cstring(msgpack_packer, function);
 
     msgpack_pack_mstring(msgpack_packer, "fd");
-    msgpack_pack_int(msgpack_packer, fd);    
+    msgpack_pack_int(msgpack_packer, fd);
 
     if (pre == false) {
         msgpack_pack_mstring(msgpack_packer, "return_code");
