@@ -105,10 +105,9 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
     int ret_errno = 0;    
     bool bypass_call = false;
     FilterReplyResultBase rb = {
-        .pre = true,
-        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = -1,
+        .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = -1
     };
-    if (bypass_filter == false &&
+    if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, &domain, &type, &protocol)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;

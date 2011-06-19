@@ -27,7 +27,7 @@ typedef enum FilterReplyResult_ {
 
 typedef struct FilterReplyResultBase_ {
     bool pre;
-    Filter * const filter;
+    Filter *filter;
     int * const ret;
     int * const ret_errno;
     int fd;

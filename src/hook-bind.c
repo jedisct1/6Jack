@@ -109,10 +109,9 @@ int INTERPOSE(bind)(int fd, const struct sockaddr *sa, socklen_t sa_len)
     assert(sa_len <= sizeof sa_);
     memcpy(&sa_, sa, sa_len);
     FilterReplyResultBase rb = {
-        .pre = true,
-        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = fd,
+        .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = fd
     };
-    if (bypass_filter == false &&
+    if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, &sa_, &sa_len_) == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }

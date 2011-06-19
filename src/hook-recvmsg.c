@@ -152,10 +152,9 @@ ssize_t INTERPOSE(recvmsg)(int fd, struct msghdr *msg, int flags)
     }
     size_t new_nbyte = nbyte;
     FilterReplyResultBase rb = {
-        .pre = true,
-        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = fd,
+        .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = fd
     };
-    if (bypass_filter == false &&
+    if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, sa_local_, sa_local_len, msg,
                      &new_nbyte, &flags)
         == FILTER_REPLY_BYPASS) {

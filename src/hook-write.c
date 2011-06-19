@@ -75,10 +75,9 @@ ssize_t INTERPOSE(write)(int fd, const void *buf, size_t nbyte)
     bool bypass_call = false;
     size_t new_nbyte = nbyte;
     FilterReplyResultBase rb = {
-        .pre = true,
-        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = fd,
+        .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = fd
     };
-    if (bypass_filter == false &&
+    if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, sa_local_, sa_local_len,
                      sa_remote_, sa_remote_len, &buf, &new_nbyte)
         == FILTER_REPLY_BYPASS) {
