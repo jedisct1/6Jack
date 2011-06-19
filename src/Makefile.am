@@ -19,6 +19,8 @@ lib6jack_la_SOURCES = \
 	hook-recv.h \
 	hook-recvfrom.c \
 	hook-recvfrom.h \
+	hook-recvmsg.c \
+	hook-recvmsg.h \
 	hook-socket.c \
 	hook-socket.h \
 	hook-write.c \

@@ -12,6 +12,7 @@ int hooks_init(void)
     __real_read_init();
     __real_recv_init();
     __real_recvfrom_init();
+    __real_recvmsg_init();    
     __real_socket_init();
     __real_write_init();    
     
