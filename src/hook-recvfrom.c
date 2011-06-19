@@ -41,7 +41,7 @@ static FilterReplyResult filter_parse_reply(const bool pre,
         if (obj_flags != NULL &&
             (obj_flags->type == MSGPACK_OBJECT_POSITIVE_INTEGER ||
              obj_flags->type == MSGPACK_OBJECT_NEGATIVE_INTEGER)) {
-            const int64_t new_flags = obj_nbyte->via.i64;
+            const int64_t new_flags = obj_flags->via.i64;
             if (new_flags >= INT_MIN && new_flags <= INT_MAX) {
                 *flags = new_flags;
             }
