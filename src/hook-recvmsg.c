@@ -134,8 +134,7 @@ ssize_t INTERPOSE(recvmsg)(int fd, struct msghdr *msg, int flags)
 {
     __real_recvmsg_init();
     const bool bypass_filter =
-        getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
-        
+        getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;        
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
     socklen_t sa_local_len;
     get_sock_info(fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);
