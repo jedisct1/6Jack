@@ -8,37 +8,31 @@
 
 int (* __real_connect)(int fd, const struct sockaddr *sa, socklen_t sa_len);
 
-static FilterReplyResult filter_parse_reply(Filter * const filter,
-                                            int * const ret,
-                                            int * const ret_errno,
-                                            const int fd,
+static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
                                             struct sockaddr_storage * const sa,
                                             socklen_t * const sa_len)
 {
-    msgpack_unpacked * const message = filter_receive_message(filter);
+    msgpack_unpacked * const message = filter_receive_message(rb->filter);
     const msgpack_object_map * const map = &message->data.via.map;
-    FilterReplyResult reply_result =
-        filter_parse_common_reply_map(map, ret, ret_errno, fd);    
+    FilterReplyResult reply_result = filter_parse_common_reply_map(rb, map);
     filter_overwrite_sa_with_reply_map(map, "remote_host", "remote_port",
                                        sa, sa_len);
     return reply_result;
 }
 
-static FilterReplyResult filter_apply(const bool pre, int * const ret,
-                                      int * const ret_errno, const int fd,
+static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
                                       struct sockaddr_storage * const sa,
                                       socklen_t * const sa_len)
 {
-    Filter * const filter = filter_get();
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
     socklen_t sa_local_len;
-    get_sock_info(fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);    
-    filter_before_apply(pre, *ret, *ret_errno, fd, 0U, "connect",
+    get_sock_info(rb->fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);
+    filter_before_apply(rb, 0U, "connect",
                         sa_local_, sa_local_len, sa, *sa_len);
-    if (filter_send_message(filter) != 0) {
+    if (filter_send_message(rb->filter) != 0) {
         return FILTER_REPLY_RESULT_ERROR;
     }    
-    return filter_parse_reply(filter, ret, ret_errno, fd, sa, sa_len);
+    return filter_parse_reply(rb, sa, sa_len);
 }
 
 int __real_connect_init(void)
@@ -65,8 +59,12 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
     socklen_t sa_len_ = sa_len;
     assert(sa_len <= sizeof sa_);
     memcpy(&sa_, sa, sa_len);
+    FilterReplyResultBase rb = {
+        .pre = true,
+        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = fd,
+    };    
     if (bypass_filter == false &&
-        filter_apply(true, &ret, &ret_errno, fd, &sa_, &sa_len_)
+        filter_apply(&rb, &sa_, &sa_len_)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
@@ -75,7 +73,8 @@ int INTERPOSE(connect)(int fd, const struct sockaddr *sa, socklen_t sa_len)
         ret_errno = errno;
     }
     if (bypass_filter == false) {
-        filter_apply(false, &ret, &ret_errno, fd, &sa_, &sa_len_);
+        rb.pre = false;
+        filter_apply(&rb, &sa_, &sa_len_);
     }
     errno = ret_errno;
     

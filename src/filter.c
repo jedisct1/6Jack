@@ -48,10 +48,8 @@ msgpack_unpacked *filter_receive_message(Filter * const filter)
     return message;
 }
 
-FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const map,
-                                                int * const ret,
-                                                int * const ret_errno,
-                                                const int fd)
+FilterReplyResult filter_parse_common_reply_map(FilterReplyResultBase * const rb,
+                                                const msgpack_object_map * const map)
 {
     const msgpack_object * const obj_version =
         msgpack_get_map_value_for_key(map, "version");
@@ -66,7 +64,7 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
                obj_return_code->type == MSGPACK_OBJECT_NEGATIVE_INTEGER);
         const int64_t new_return_code = obj_return_code->via.i64;
         assert(new_return_code >= INT_MIN && new_return_code <= INT_MAX);
-        *ret = new_return_code;
+        *rb->ret = new_return_code;
     }
     
     const msgpack_object * const obj_ret_errno =
@@ -76,7 +74,7 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
                obj_ret_errno->type == MSGPACK_OBJECT_NEGATIVE_INTEGER);
         const int64_t new_ret_errno = obj_ret_errno->via.i64;
         assert(new_ret_errno >= INT_MIN && new_ret_errno <= INT_MAX);
-        *ret_errno = new_ret_errno;
+        *rb->ret_errno = new_ret_errno;
     }
     
     const msgpack_object * const obj_force_close =
@@ -85,7 +83,7 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
         assert(obj_force_close->type == MSGPACK_OBJECT_BOOLEAN);
         const bool force_close = obj_force_close->via.boolean;
         if (force_close != false) {
-            close(fd);
+            close(rb->fd);
         }
     }    
 
@@ -101,8 +99,7 @@ FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const
     return FILTER_REPLY_PASS;
 }
 
-int filter_before_apply(const bool pre,
-                        const int ret, const int ret_errno, const int fd,
+int filter_before_apply(FilterReplyResultBase * const rb,
                         const unsigned int nongeneric_items,
                         const char * const function,
                         const struct sockaddr_storage * const sa_local,
@@ -117,7 +114,7 @@ int filter_before_apply(const bool pre,
     msgpack_packer_init(msgpack_packer, filter->msgpack_sbuffer,
                         msgpack_sbuffer_write);
     unsigned int items_count = nongeneric_items + 5U;
-    if (pre == false) {
+    if (rb->pre == false) {
         items_count += 2U;
     }
     if (sa_local != NULL) {
@@ -132,7 +129,7 @@ int filter_before_apply(const bool pre,
     msgpack_pack_unsigned_short(msgpack_packer, VERSION_MAJOR);
     
     msgpack_pack_mstring(msgpack_packer, "filter_type");
-    msgpack_pack_cstring(msgpack_packer, pre ? "PRE" : "POST");
+    msgpack_pack_cstring(msgpack_packer, rb->pre ? "PRE" : "POST");
     
     msgpack_pack_mstring(msgpack_packer, "pid");
     msgpack_pack_unsigned_int(msgpack_packer, context->pid);
@@ -141,14 +138,14 @@ int filter_before_apply(const bool pre,
     msgpack_pack_cstring(msgpack_packer, function);
 
     msgpack_pack_mstring(msgpack_packer, "fd");
-    msgpack_pack_int(msgpack_packer, fd);
+    msgpack_pack_int(msgpack_packer, rb->fd);
 
-    if (pre == false) {
+    if (rb->pre == false) {
         msgpack_pack_mstring(msgpack_packer, "return_code");
-        msgpack_pack_int(msgpack_packer, ret);
+        msgpack_pack_int(msgpack_packer, *rb->ret);
         
         msgpack_pack_mstring(msgpack_packer, "errno");
-        msgpack_pack_int(msgpack_packer, ret_errno);
+        msgpack_pack_int(msgpack_packer, *rb->ret_errno);
     }
     
     char host[NI_MAXHOST];

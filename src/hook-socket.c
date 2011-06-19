@@ -8,16 +8,14 @@
 
 int (* __real_socket)(int domain, int type, int protocol);
 
-static FilterReplyResult filter_parse_reply(Filter * const filter,
-                                            int * const ret,
-                                            int * const ret_errno,
-                                            const int fd, int * const domain,
+static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
+                                            int * const domain,
                                             int * const type,
                                             int * const protocol)
 {
-    msgpack_unpacked * const message = filter_receive_message(filter);
+    msgpack_unpacked * const message = filter_receive_message(rb->filter);    
     const msgpack_object_map * const map = &message->data.via.map;
-    filter_parse_common_reply_map(map, ret, ret_errno, fd);
+    FilterReplyResult reply_result = filter_parse_common_reply_map(rb, map);
     
     const msgpack_object * const obj_domain =
         msgpack_get_map_value_for_key(map, "domain");    
@@ -28,7 +26,6 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                               (size_t) obj_domain->via.raw.size) == 0) {
         *domain = new_domain;
     }
-
     const msgpack_object * const obj_type =
         msgpack_get_map_value_for_key(map, "type");
     int new_type;    
@@ -48,18 +45,15 @@ static FilterReplyResult filter_parse_reply(Filter * const filter,
                               (size_t) obj_protocol->via.raw.size) == 0) {
         *protocol = new_protocol;
     }    
-    return 0;
+    return reply_result;
 }
 
-static FilterReplyResult filter_apply(const bool pre, int * const ret,
-                                      int * const ret_errno,
+static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
                                       int * const domain, int * const type,
                                       int * const protocol)
 {
-    Filter * const filter = filter_get();
-    msgpack_packer * const msgpack_packer = filter->msgpack_packer;    
-    const int fd = *ret;    
-    filter_before_apply(pre, *ret, *ret_errno, fd, 3U, "socket",
+    msgpack_packer * const msgpack_packer = rb->filter->msgpack_packer;    
+    filter_before_apply(rb, 3U, "socket",
                         NULL, (socklen_t) 0U, NULL, (socklen_t) 0U);
     
     msgpack_pack_mstring(msgpack_packer, "domain");    
@@ -84,11 +78,10 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
         idn_find_name_from_id(idn_get_ip_protos(), *protocol);
     msgpack_pack_cstring_or_nil(msgpack_packer, protocol_name);
     
-    if (filter_send_message(filter) != 0) {
+    if (filter_send_message(rb->filter) != 0) {
         return FILTER_REPLY_RESULT_ERROR;
     }
-    return filter_parse_reply(filter, ret, ret_errno, fd,
-                              domain, type, protocol);
+    return filter_parse_reply(rb, domain, type, protocol);
 }
 
 int __real_socket_init(void)
@@ -111,8 +104,12 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
+    FilterReplyResultBase rb = {
+        .pre = true,
+        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = -1,
+    };
     if (bypass_filter == false &&
-        filter_apply(true, &ret, &ret_errno, &domain, &type, &protocol)
+        filter_apply(&rb, &domain, &type, &protocol)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
@@ -121,7 +118,9 @@ int INTERPOSE(socket)(int domain, int type, int protocol)
         ret_errno = errno;
     }
     if (bypass_filter == false) {
-        filter_apply(false, &ret, &ret_errno, &domain, &type, &protocol);
+        rb.fd = ret;
+        rb.pre = false;
+        filter_apply(&rb, &domain, &type, &protocol);
     }
     errno = ret_errno;
     

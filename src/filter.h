@@ -25,10 +25,17 @@ typedef enum FilterReplyResult_ {
     FILTER_REPLY_BYPASS = 1
 } FilterReplyResult;
 
+typedef struct FilterReplyResultBase_ {
+    bool pre;
+    Filter * const filter;
+    int * const ret;
+    int * const ret_errno;
+    int fd;
+} FilterReplyResultBase;
+
 Filter *filter_get(void);
 
-int filter_before_apply(const bool pre,
-                        const int ret, const int ret_errno, const int fd,
+int filter_before_apply(FilterReplyResultBase * const rb,
                         const unsigned int nongeneric_items,
                         const char * const function,
                         const struct sockaddr_storage * const sa_local,
@@ -40,10 +47,8 @@ int filter_send_message(Filter * const filter);
 
 msgpack_unpacked *filter_receive_message(Filter * const filter);
 
-FilterReplyResult filter_parse_common_reply_map(const msgpack_object_map * const map,
-                                                int * const ret,
-                                                int * const ret_errno,
-                                                const int fd);
+FilterReplyResult filter_parse_common_reply_map(FilterReplyResultBase * const rb,
+                                                const msgpack_object_map * const map);
 
 int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
                                        const char * const key_host,

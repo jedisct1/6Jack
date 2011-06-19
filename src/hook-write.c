@@ -8,20 +8,15 @@
 
 ssize_t (* __real_write)(int fd, const void *buf, size_t nbyte);
 
-static FilterReplyResult filter_parse_reply(const bool pre,
-                                            Filter * const filter,
-                                            int * const ret,
-                                            int * const ret_errno,
-                                            const int fd,
+static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
                                             const void * * const buf,
                                             size_t * const nbyte)
 {
-    msgpack_unpacked * const message = filter_receive_message(filter);
+    msgpack_unpacked * const message = filter_receive_message(rb->filter);
     const msgpack_object_map * const map = &message->data.via.map;
-    FilterReplyResult reply_result =
-        filter_parse_common_reply_map(map, ret, ret_errno, fd);
+    FilterReplyResult reply_result = filter_parse_common_reply_map(rb, map);
 
-    if (pre == false) {
+    if (rb->pre == false) {
         return reply_result;
     }
     const msgpack_object * const obj_data =
@@ -33,8 +28,7 @@ static FilterReplyResult filter_parse_reply(const bool pre,
     return reply_result;
 }
 
-static FilterReplyResult filter_apply(const bool pre, int * const ret,
-                                      int * const ret_errno, const int fd,
+static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
                                       const struct sockaddr_storage * const sa_local,
                                       const socklen_t sa_local_len,
                                       const struct sockaddr_storage * const sa_remote,
@@ -42,18 +36,16 @@ static FilterReplyResult filter_apply(const bool pre, int * const ret,
                                       const void * * const buf,
                                       size_t * const nbyte)
 {
-    Filter * const filter = filter_get();
-    msgpack_packer * const msgpack_packer = filter->msgpack_packer;
-
-    filter_before_apply(pre, *ret, *ret_errno, fd, 1U, "write",
+    msgpack_packer * const msgpack_packer = rb->filter->msgpack_packer;
+    filter_before_apply(rb, 1U, "write",
                         sa_local, sa_local_len, sa_remote, sa_remote_len);
     msgpack_pack_mstring(msgpack_packer, "data");
     msgpack_pack_raw(msgpack_packer, *nbyte);
     msgpack_pack_raw_body(msgpack_packer, *buf, *nbyte);
-    if (filter_send_message(filter) != 0) {
+    if (filter_send_message(rb->filter) != 0) {
         return FILTER_REPLY_RESULT_ERROR;
     }
-    return filter_parse_reply(pre, filter, ret, ret_errno, fd, buf, nbyte);
+    return filter_parse_reply(rb, buf, nbyte);
 }
 
 int __real_write_init(void)
@@ -82,8 +74,12 @@ ssize_t INTERPOSE(write)(int fd, const void *buf, size_t nbyte)
     int ret_errno = 0;    
     bool bypass_call = false;
     size_t new_nbyte = nbyte;
+    FilterReplyResultBase rb = {
+        .pre = true,
+        .filter = filter_get(), .ret = &ret, .ret_errno = &ret_errno, .fd = fd,
+    };
     if (bypass_filter == false &&
-        filter_apply(true, &ret, &ret_errno, fd, sa_local_, sa_local_len,
+        filter_apply(&rb, sa_local_, sa_local_len,
                      sa_remote_, sa_remote_len, &buf, &new_nbyte)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
@@ -95,7 +91,8 @@ ssize_t INTERPOSE(write)(int fd, const void *buf, size_t nbyte)
         assert((ssize_t) ret_ == ret);
     }
     if (bypass_filter == false) {
-        filter_apply(false, &ret, &ret_errno, fd, sa_local_, sa_local_len,
+        rb.pre = false;
+        filter_apply(&rb, sa_local_, sa_local_len,
                      sa_remote_, sa_remote_len, &buf, &new_nbyte);
     }
     errno = ret_errno;
