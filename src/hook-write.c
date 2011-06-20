@@ -21,9 +21,12 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
     }
     const msgpack_object * const obj_data =
         msgpack_get_map_value_for_key(map, "data");
-    if (obj_data != NULL && obj_data->type == MSGPACK_OBJECT_RAW) {
+    if (obj_data != NULL && obj_data->type == MSGPACK_OBJECT_RAW &&
+        *rb->ret > 0) {
         *buf = obj_data->via.raw.ptr;
-        *nbyte = (size_t) obj_data->via.raw.size;
+        *nbyte = (size_t) obj_data->via.raw.size;        
+        *rb->ret = (int) *nbyte;
+        assert((size_t) *rb->ret == *nbyte);
     }    
     return reply_result;
 }
