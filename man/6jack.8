@@ -1,0 +1,83 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "6JACK" "8" "June 2011" "" ""
+.
+.SH "NAME"
+\fB6jack\fR \- A framework for analyzing/testing/fuzzing network applications
+.
+.SH "SYNOPSIS"
+\fB6jack\fR \fIfilter\fR \fIcommand\fR [\fIargs\fR]
+.
+.SH "DESCRIPTION"
+\fB6Jack\fR runs \fIcommand\fR and diverts calls to common network\-related functions to a filter as \fBmessagepack\fR serialized objects\.
+.
+.P
+\fBPre\-filters\fR can inspect and alter the content prior to calling the actual function\. A \fBpre\-filter\fR can also totally bypass the actual call, in order to simulate a call without actually hitting the network\.
+.
+.P
+\fBPost\-filters\fR can inspect and alter the content after the actual call\. In particular, \fBpost\-filters\fR can change return codes and the \fBerrno\fR value in order to simulate failures\.
+.
+.SH "OPTIONS"
+\fIcommand\fR is the name of the command to run\.
+.
+.P
+\fIfilter\fR is the absolute path to an application that receives a stream of \fBmessagepack\fR serialized objects on \fBstdin\fR and for every object, should push a serialized reply to \fBstdout\fR\.
+.
+.SH "DIVERTED FUNCTIONS"
+.
+.IP "\(bu" 4
+bind(2)
+.
+.IP "\(bu" 4
+close(2)
+.
+.IP "\(bu" 4
+connect(2)
+.
+.IP "\(bu" 4
+read(2)
+.
+.IP "\(bu" 4
+recv(2)
+.
+.IP "\(bu" 4
+recvfrom(2)
+.
+.IP "\(bu" 4
+recvmsg(2)
+.
+.IP "\(bu" 4
+send(2)
+.
+.IP "\(bu" 4
+sendmsg(2)
+.
+.IP "\(bu" 4
+sendto(2)
+.
+.IP "\(bu" 4
+socket(2)
+.
+.IP "\(bu" 4
+write(2)
+.
+.IP "" 0
+.
+.SH "ENVIRONMENT"
+When a \fBSIXJACK_BYPASS\fR environment variable is defined, calls are not diverted to the filter any more\.
+.
+.P
+An application is free to set and unset \fBSIXJACK_BYPASS\fR, in order to explicitly disable \fB6Jack\fR in some sections\.
+.
+.SH "SECURITY CONSIDERATIONS"
+\fB6Jack\fR has been designed as a tool for testing applications\.
+.
+.P
+It is not suitable for running in a production environment or with untrusted data / filters\.
+.
+.SH "WWW"
+\fB6Jack\fR is hosted on Github: \fBhttps://github\.com/jedisct1/6jack\fR
+.
+.SH "SEE ALSO"
+\fBMessagePack\fR home page: \fBhttp://msgpack\.org/\fR

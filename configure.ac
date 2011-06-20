@@ -29,6 +29,7 @@ AC_PROG_CC_C99
 AC_USE_SYSTEM_EXTENSIONS
 CPPFLAGS="$CPPFLAGS -D_XPG4_2=1 -D_GNU_SOURCE=1"
 AC_PROG_LIBTOOL
+AC_PATH_PROG([RONN], [ronn])
 
 CFLAGS="$CFLAGS -fvisibility=hidden"
 
@@ -84,5 +85,6 @@ AC_ARG_WITH(debug,
 AC_SUBST([MAINT])
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 man/Makefile])
 AC_OUTPUT

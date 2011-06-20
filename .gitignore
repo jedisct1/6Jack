@@ -18,6 +18,7 @@ install-sh
 libtool
 ltmain.sh
 m4
+man/6jack.8.html
 missing
 src/*.dSYM
 src/*.o

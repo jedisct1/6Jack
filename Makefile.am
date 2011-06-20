@@ -5,5 +5,5 @@ AUTOMAKE_OPTIONS = gnu
 dist_doc_DATA = README.markdown
 
 SUBDIRS = \
-	src
-    
+	src \
+	man

@@ -42,7 +42,7 @@ lib6jack_la_SOURCES = \
 	msgpack-extensions.c \
 	msgpack-extensions.h \
 	utils.c \
-lautoma	utils.h
+	utils.h
 
 lib6jack_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
