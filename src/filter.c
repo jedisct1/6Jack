@@ -57,14 +57,14 @@ FilterReplyResult filter_parse_common_reply_map(FilterReplyResultBase * const rb
     assert(obj_version->type == MSGPACK_OBJECT_POSITIVE_INTEGER);
     assert(obj_version->via.u64 == VERSION_MAJOR);
     
-    const msgpack_object * const obj_return_code =
-        msgpack_get_map_value_for_key(map, "return_code");
-    if (obj_return_code != NULL) {
-        assert(obj_return_code->type == MSGPACK_OBJECT_POSITIVE_INTEGER ||
-               obj_return_code->type == MSGPACK_OBJECT_NEGATIVE_INTEGER);
-        const int64_t new_return_code = obj_return_code->via.i64;
-        assert(new_return_code >= INT_MIN && new_return_code <= INT_MAX);
-        *rb->ret = new_return_code;
+    const msgpack_object * const obj_return_value =
+        msgpack_get_map_value_for_key(map, "return_value");
+    if (obj_return_value != NULL) {
+        assert(obj_return_value->type == MSGPACK_OBJECT_POSITIVE_INTEGER ||
+               obj_return_value->type == MSGPACK_OBJECT_NEGATIVE_INTEGER);
+        const int64_t new_return_value = obj_return_value->via.i64;
+        assert(new_return_value >= INT_MIN && new_return_value <= INT_MAX);
+        *rb->ret = new_return_value;
     }
     
     const msgpack_object * const obj_ret_errno =
@@ -141,7 +141,7 @@ int filter_before_apply(FilterReplyResultBase * const rb,
     msgpack_pack_int(msgpack_packer, rb->fd);
 
     if (rb->pre == false) {
-        msgpack_pack_mstring(msgpack_packer, "return_code");
+        msgpack_pack_mstring(msgpack_packer, "return_value");
         msgpack_pack_int(msgpack_packer, *rb->ret);
         
         msgpack_pack_mstring(msgpack_packer, "errno");
