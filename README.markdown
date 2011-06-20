@@ -362,6 +362,50 @@ Additional properties that can be added to replies for all functions
     size shouldn't exceed `nbyte`. **6Jack** will automatically
     fragment it across multiple vectors if needed.
 
+### recvfrom()
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `flags`:
+    Flags used when calling the function.
+    
+    * `nbyte`:
+    The size of the receiving buffer.
+    
+  * __Out__:
+  
+    * `flags`:
+    Override the flags.
+    
+    * `nbyte`:
+    Change the maximum size of the data to be read. It can only be
+    lowered.
+    
+#### **POST** filter
+
+  * __In__:
+  
+    * `flags`:
+    Flags used when calling the function.
+    
+    * `data`:
+    Data that has been read.
+    
+  * __Out__:
+  
+    * `data`:
+    Override the data. The size can differ from the one of the real data, but
+    it shouldn't exceed the size of the supplied buffer (`nbyte`).
+
+    * `remote_host`:
+    Change the remote host by providing the IP address of the new
+    peer. IPv6 is fully supported.
+    
+    * `remote_port`:
+    Change the port the data is sent from.
+
 ## ENVIRONMENT
 
 When a `SIXJACK_BYPASS` environment variable is defined, calls are not
