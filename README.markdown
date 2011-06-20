@@ -513,17 +513,262 @@ diverted to the filter any more.
 An application is free to set and unset `SIXJACK_BYPASS`, in order to
 explicitly disable **6Jack** in some sections.
 
-## DIVERTED FUNCTIONS
+## SAMPLE OUTPUT
 
-  * bind(2)
-  * close(2)
-  * connect(2)
-  * read(2)
-  * recv(2)
-  * recvfrom(2)
-  * recvmsg(2)
-  * send(2)
-  * sendmsg(2)
-  * sendto(2)
-  * socket(2)
-  * write(2)
+    $ 6jack /tmp/filter-passthrough.rb curl http://example.com    
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => -1,
+             "domain" => "PF_INET6",
+               "type" => "SOCK_DGRAM",
+           "protocol" => "IPPROTO_IP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => 7,
+        "return_code" => 7,
+              "errno" => 2,
+             "domain" => "PF_INET6",
+               "type" => "SOCK_DGRAM",
+           "protocol" => "IPPROTO_IP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+         "local_host" => "::ffff:0.0.0.0",
+         "local_port" => 0
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+        "return_code" => 0,
+              "errno" => 2,
+         "local_host" => "::ffff:0.0.0.0",
+         "local_port" => 0
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => -1,
+             "domain" => "PF_LOCAL",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_IP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => 8,
+        "return_code" => 8,
+              "errno" => 2,
+             "domain" => "PF_LOCAL",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_IP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => -1,
+             "domain" => "PF_INET6",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_TCP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => 7,
+        "return_code" => 7,
+              "errno" => 2,
+             "domain" => "PF_INET6",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_TCP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "connect",
+                 "fd" => 7,
+         "local_host" => "::",
+         "local_port" => 0,
+        "remote_host" => "2001:500:88:200::10",
+        "remote_port" => 80
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "connect",
+                 "fd" => 7,
+        "return_code" => -1,
+              "errno" => 65,
+         "local_host" => "::",
+         "local_port" => 50716,
+        "remote_host" => "2001:500:88:200::10",
+        "remote_port" => 80
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+         "local_host" => "::",
+         "local_port" => 50716
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+        "return_code" => 0,
+              "errno" => 57,
+         "local_host" => "::",
+         "local_port" => 50716
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => -1,
+             "domain" => "PF_INET",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_TCP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "socket",
+                 "fd" => 7,
+        "return_code" => 7,
+              "errno" => 57,
+             "domain" => "PF_INET",
+               "type" => "SOCK_STREAM",
+           "protocol" => "IPPROTO_TCP"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "connect",
+                 "fd" => 7,
+         "local_host" => "0.0.0.0",
+         "local_port" => 0,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "connect",
+                 "fd" => 7,
+        "return_code" => -1,
+              "errno" => 36,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "send",
+                 "fd" => 7,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80,
+              "flags" => 0,
+               "data" => "GET / HTTP/1.1\r\nUser-Agent: curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3\r\nHost: example.com\r\nAccept: */*\r\n\r\n"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "send",
+                 "fd" => 7,
+        "return_code" => 145,
+              "errno" => 36,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80,
+              "flags" => 0,
+               "data" => "GET / HTTP/1.1\r\nUser-Agent: curl/7.19.7 (universal-apple-darwin10.0) libcurl/7.19.7 OpenSSL/0.9.8l zlib/1.2.3\r\nHost: example.com\r\nAccept: */*\r\n\r\n"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "recv",
+                 "fd" => 7,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80,
+              "flags" => 0,
+              "nbyte" => 16384
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "recv",
+                 "fd" => 7,
+        "return_code" => 128,
+              "errno" => 36,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80,
+              "flags" => 0,
+               "data" => "HTTP/1.0 302 Found\r\nLocation: http://www.iana.org/domains/example/\r\nServer: BigIP\r\nConnection: Keep-Alive\r\nContent-Length: 0\r\n\r\n"
+    }
+    {
+            "version" => 1,
+        "filter_type" => "PRE",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80
+    }
+    {
+            "version" => 1,
+        "filter_type" => "POST",
+                "pid" => 2233,
+           "function" => "close",
+                 "fd" => 7,
+        "return_code" => 0,
+              "errno" => 36,
+         "local_host" => "192.168.100.7",
+         "local_port" => 50717,
+        "remote_host" => "192.0.43.10",
+        "remote_port" => 80
+    }
