@@ -40,24 +40,11 @@ lib6jack_la_SOURCES = \
 	msgpack-extensions.c \
 	msgpack-extensions.h \
 	utils.c \
-	utils.h
+lautoma	utils.h
 
 lib6jack_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-version-info $(SIXJACK_LIBRARY_VERSION)
-
-bin_PROGRAMS = \
-	6jack-test
-
-6jack_test_SOURCES = \
-	6jack-test.c
-
-6jack_test_LDADD = \
-	$(AM_LDADD) \
-	lib6jack.la
-
-6jack_test_DEPENDENCIES = \
-	lib6jack.la
 
 bin_SCRIPTS = \
 	6jack
