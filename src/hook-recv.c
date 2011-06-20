@@ -23,7 +23,7 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
         if (obj_nbyte != NULL &&
             obj_nbyte->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
             const int64_t new_nbyte = obj_nbyte->via.i64;
-            if (new_nbyte <= INT_MAX) {
+            if (new_nbyte <= INT_MAX && new_nbyte <= *nbyte) {
                 *nbyte = new_nbyte;
             }
         }
