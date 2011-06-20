@@ -30,4 +30,9 @@ int get_sock_info(const int fd,
                   struct sockaddr_storage * * const sa_remote,
                   socklen_t * const sa_remote_len);
 
+in_port_t *storage_port(const struct sockaddr_storage * const ss);
+in_port_t *storage_port6(const struct sockaddr_storage * const ss);
+struct in_addr *storage_sin_addr(const struct sockaddr_storage * const ss);
+struct in6_addr *storage_sin_addr6(const struct sockaddr_storage * const ss);
+
 #endif
