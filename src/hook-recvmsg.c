@@ -36,15 +36,16 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
             const char *data_pnt = obj_data->via.raw.ptr;
             size_t data_remaining = (size_t) obj_data->via.raw.size;
             size_t copy_to_vec;
-            int i_vecs = 0;
+            size_t i_vecs = 0U;
             size_t max_nbytes = (size_t) 0U;
-            while (i_vecs < msg->msg_iovlen) {
+            while (i_vecs < (size_t) msg->msg_iovlen) {
                 max_nbytes += vecs[i_vecs].iov_len;
                 i_vecs++;
             }
             assert(max_nbytes >= data_remaining);
-            i_vecs = 0;
-            while (i_vecs < msg->msg_iovlen && data_remaining > (size_t) 0U) {
+            i_vecs = 0U;
+            while (i_vecs < (size_t) msg->msg_iovlen &&
+                   data_remaining > (size_t) 0U) {
                 if (data_remaining < vecs[i_vecs].iov_len) {
                     copy_to_vec = data_remaining;
                 } else {
@@ -96,8 +97,9 @@ static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
         size_t data_remaining = *nbyte;
         size_t read_from_vec;
         struct iovec * const vecs = msg->msg_iov;
-        int i_vecs = 0;
-        while (i_vecs < msg->msg_iovlen && data_remaining > (size_t) 0U) {
+        size_t i_vecs = 0U;
+        while (i_vecs < (size_t) msg->msg_iovlen &&
+               data_remaining > (size_t) 0U) {
             if (data_remaining < vecs[i_vecs].iov_len) {
                 read_from_vec = data_remaining;
             } else {
@@ -143,8 +145,8 @@ ssize_t INTERPOSE(recvmsg)(int fd, struct msghdr *msg, int flags)
     bool bypass_call = false;
     size_t nbyte = (size_t) 0U;
     struct iovec * const vecs = msg->msg_iov;
-    int i_vecs = 0;
-    while (i_vecs < msg->msg_iovlen) {
+    size_t i_vecs = 0U;
+    while (i_vecs < (size_t) msg->msg_iovlen) {
         assert(SIZE_MAX - nbyte >= vecs[i_vecs].iov_len);
         nbyte += vecs[i_vecs].iov_len;
         i_vecs++;

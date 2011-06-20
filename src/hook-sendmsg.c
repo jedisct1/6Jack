@@ -62,8 +62,9 @@ static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
     size_t data_remaining = *nbyte;
     size_t read_from_vec;
     struct iovec * const vecs = msg->msg_iov;
-    int i_vecs = 0;
-    while (i_vecs < msg->msg_iovlen && data_remaining > (size_t) 0U) {
+    size_t i_vecs = 0U;
+    while (i_vecs < (size_t) msg->msg_iovlen &&
+           data_remaining > (size_t) 0U) {
         if (data_remaining < vecs[i_vecs].iov_len) {
             read_from_vec = data_remaining;
         } else {
@@ -109,8 +110,8 @@ ssize_t INTERPOSE(sendmsg)(int fd, const struct msghdr *msg, int flags)
     struct msghdr msg_ = *msg;
     size_t nbyte = (size_t) 0U;
     struct iovec * const vecs = msg->msg_iov;
-    int i_vecs = 0;
-    while (i_vecs < msg->msg_iovlen) {
+    size_t i_vecs = 0U;
+    while (i_vecs < (size_t) msg->msg_iovlen) {
         assert(SIZE_MAX - nbyte >= vecs[i_vecs].iov_len);
         nbyte += vecs[i_vecs].iov_len;
         i_vecs++;
