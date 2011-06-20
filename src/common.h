@@ -73,6 +73,48 @@ extern char **environ;
 # define HOOK_GLOBAL extern
 #endif
 
+#define STORAGE_PORT(X)  (*storage_port(&(X)))
+#define STORAGE_PORT6(X) (*storage_port6(&(X)))
+#define STORAGE_SIN_ADDR(X) (storage_sin_addr(&(X))->s_addr)
+#define STORAGE_SIN_ADDR6(X) (storage_sin_addr6(&(X))->s6_addr)
+#define STORAGE_SIN_ADDR6_NF(X) (*(storage_sin_addr6(&(X))))
+
+#ifdef HAVE_SS_LEN
+# define STORAGE_LEN(X) ((X).ss_len)
+# define SET_STORAGE_LEN(X, Y) do { STORAGE_LEN(X) = (Y); } while(0)
+#elif defined(HAVE___SS_LEN)
+# define STORAGE_LEN(X) ((X).__ss_len)
+# define SET_STORAGE_LEN(X, Y) do { STORAGE_LEN(X) = (Y); } while(0)
+#else
+# define STORAGE_LEN(X) (STORAGE_FAMILY(X) == AF_INET ? sizeof(struct sockaddr_in) : sizeof(struct sockaddr_in6))
+# define SET_STORAGE_LEN(X, Y) (void) 0
+#endif
+
+#ifdef HAVE___SS_FAMILY
+# define STORAGE_FAMILY(X) ((X).__ss_family)
+#else
+# define STORAGE_FAMILY(X) ((X).ss_family)
+#endif
+
+#ifndef SOL_IP
+# define SOL_IP IPPROTO_IP
+#endif
+#ifndef SOL_TCP
+# define SOL_TCP IPPROTO_TCP
+#endif
+
+#ifndef INADDR_NONE
+# define INADDR_NONE 0
+#endif
+
+#if !defined(O_NDELAY) && defined(O_NONBLOCK)
+# define O_NDELAY O_NONBLOCK
+#endif
+
+#ifndef FNDELAY
+# define FNDELAY O_NDELAY
+#endif
+
 typedef struct AppContext_ {
     bool initialized;
     int log_fd;

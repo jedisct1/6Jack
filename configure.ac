@@ -68,6 +68,87 @@ AC_TYPE_UINT32_T
 AC_TYPE_SIGNAL
 AC_CHECK_TYPES([ptrdiff_t])
 
+AC_MSG_CHECKING([whether sin_len is defined])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+]], [[
+do {
+ struct sockaddr_in a;
+ (void) a.sin_len;
+} while(0)
+]])],[
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_SIN_LEN,,[define if you have sin_len])
+],[
+  AC_MSG_RESULT(no)
+])  
+
+AC_MSG_CHECKING([whether __ss_family is defined])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#include <sys/types.h>
+#include <sys/socket.h>
+]], [[
+do {
+ struct sockaddr_storage a;
+ (void) a.__ss_family;
+} while(0)
+]])],[
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE___SS_FAMILY,,[define if you have __ss_family])
+],[
+  AC_MSG_RESULT(no)
+])  
+
+AC_MSG_CHECKING([whether ss_len is defined])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#include <sys/types.h>
+#include <sys/socket.h>
+]], [[
+do {
+ struct sockaddr_storage a;
+ (void) a.ss_len;
+} while(0)
+]])],[
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE_SS_LEN,,[define if you have ss_len])
+],[
+  AC_MSG_RESULT(no)
+])  
+
+AC_MSG_CHECKING([whether __ss_len is defined])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <stdio.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+#include <sys/types.h>
+#include <sys/socket.h>
+]], [[
+do {
+ struct sockaddr_storage a;
+ (void) a.__ss_len;
+} while(0)
+]])],[
+  AC_MSG_RESULT(yes)
+  AC_DEFINE(HAVE___SS_LEN,,[define if you have __ss_len])
+],[
+  AC_MSG_RESULT(no)
+])
+
 # Checks for library functions.
 AC_FUNC_MEMCMP
 AC_FUNC_MALLOC
