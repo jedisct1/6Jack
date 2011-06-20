@@ -83,6 +83,29 @@ serialized reply to the standard output (`stdout`).
 Every diverted function sends exactly one **PRE** object and one
 **POST** object, and synchronously waits for a reply to each object.
 
+## SAMPLE FILTER
+
+This is a simple Ruby filter that forces everything written and read to
+upper case, and logs every object to `stderr`:
+
+    require "msgpack"
+    require "awesome_print"
+    pac = MessagePack::Unpacker.new
+    loop do
+      begin
+        data = STDIN.readpartial(65536)
+      rescue EOFError
+        break
+      end
+      pac.feed(data)
+      pac.each do |obj|
+        obj["data"].upcase! if obj["data"]
+        warn obj.awesome_inspect
+        STDOUT.write obj.to_msgpack
+        STDOUT.flush
+      end
+    end
+
 ## COMMON PROPERTIES
 
 Objects sent by all diverted functions include the following properties:
