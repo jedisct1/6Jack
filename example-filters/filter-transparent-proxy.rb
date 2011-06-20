@@ -14,7 +14,7 @@ loop do
   end
   pac.feed(data)
   pac.each do |obj|    
-    if (obj["remote_port"] || nil) == 80
+    if obj["function"] == "connect" && obj["remote_port"] == 80      
       obj["remote_port"] = 8080
       obj["remote_host"] = "127.0.0.1"
     else
