@@ -16,7 +16,8 @@ loop do
     obj =
       if obj["filter_type"] == "POST" &&
          obj["function"] == "connect" && rand < 0.5
-        { version: obj["version"], return_value: -1, errno: 65 } # EHOSTUNREACH
+        { version: obj["version"], return_value: -1,
+          errno: Errno::EHOSTUNREACH::Errno }
       else
         { version: obj["version"] }
       end
