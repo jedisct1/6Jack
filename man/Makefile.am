@@ -6,8 +6,8 @@ CLEANFILES= \
 
 EXTRA_DIST= \
 	6jack.8 \
-	6jack.8.md    
+	6jack.8.markdown
 
-6jack.8: 6jack.8.md
-	$(RONN) 6jack.8.md
+6jack.8: 6jack.8.markdown
+	$(RONN) 6jack.8.markdown
 
