@@ -134,7 +134,7 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
     if (bypass_filter == false) {
         rb.pre = false;
         filter_apply(&rb, sa_local_, sa_local_len,
-                     (struct sockaddr_storage *) sa_remote,
+                     (struct sockaddr_storage *) (void *) sa_remote,
                      sa_remote_len, buf, &new_nbyte, &flags);
     }
     errno = ret_errno;

@@ -197,19 +197,19 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
                 sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr)) {
                 assert((size_t) ai->ai_addrlen >=
                        sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
-                memcpy(&((struct sockaddr_in *) sa)->sin_addr.s_addr,
-                       &((struct sockaddr_in *) ai->ai_addr)->sin_addr.s_addr,
+                memcpy(&((struct sockaddr_in *) (void *) sa)->sin_addr.s_addr,
+                       &((struct sockaddr_in *) (void *) ai->ai_addr)->sin_addr.s_addr,
                        sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
                 *sa_len = sa->ss_len = ai->ai_addrlen;
                 sa->ss_family = ai->ai_family;
-                sa->ss_len = ((struct sockaddr_storage *) ai->ai_addr)->ss_len;
+                sa->ss_len = ((struct sockaddr_storage *) (void *) ai->ai_addr)->ss_len;
             } else if (ai->ai_family == AF_INET6 &&
                       *sa_len >= (socklen_t)
-                       sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr)) {
+                       sizeof(((struct sockaddr_in6 *) (void *) sa)->sin6_addr.s6_addr)) {
                 assert((size_t) ai->ai_addrlen >=
                        sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
-                memcpy(&((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr,
-                       &((struct sockaddr_in6 *) ai->ai_addr)->sin6_addr.s6_addr,
+                memcpy(&((struct sockaddr_in6 *) (void *) sa)->sin6_addr.s6_addr,
+                       &((struct sockaddr_in6 *) (void *) ai->ai_addr)->sin6_addr.s6_addr,
                        sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
                 *sa_len = sa->ss_len = ai->ai_addrlen;
                 sa->ss_family = ai->ai_family;
