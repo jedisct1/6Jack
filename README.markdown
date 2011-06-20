@@ -50,7 +50,9 @@ objects.
   help you understand what's going on over the wire by modifying stuff
   and observing the impact.
   
-  * Sketching filtering proxies.
+  * __Sketching filtering proxies__
+  
+  * __Fuzzying__
   
 **6Jack** works at application level. It's a simple library that gets
 preloaded before the actual application.
@@ -405,6 +407,103 @@ Additional properties that can be added to replies for all functions
     
     * `remote_port`:
     Change the port the data is sent from.
+
+### recv()
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `flags`:
+    Flags that will be used to call the function.
+    
+    * `nbyte`:
+    The size of the read buffer.
+    
+  * __Out__:
+  
+    * `flags`:
+    Change the flags.
+
+    * `nbyte`:
+    Change the size of the read buffer. This value can only be lowered.
+    
+#### **POST** filter
+
+  * __In__:
+
+    * `flags`:
+    Flags that have been used to call the function.
+    
+    * `data`:
+    Data to be written.
+
+  * __Out__:
+
+    * `data`:
+    Override the read data. The size should be less than or equal to
+    the size of the original buffer (`nbyte`).
+
+### read()
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `nbyte`:
+    The size of the read buffer.
+    
+  * __Out__:
+  
+    * `nbyte`:
+    Change the size of the read buffer. This value can only be lowered.
+    
+#### **POST** filter
+
+  * __In__:
+
+    * `data`:
+    Data to be written.
+
+  * __Out__:
+
+    * `data`:
+    Override the read data. The size should be less than or equal to
+    the size of the original buffer (`nbyte`).
+
+### connect()
+
+#### **PRE** filter
+
+  * __Out__:
+  
+    * `remote_host`:
+    Change the remote host by providing the IP address of the host to
+    connect to. IPv6 is fully supported.
+    
+    * `remote_port`:
+    Change the port to connect to.
+
+### close()
+
+  This function has no specific properties. However, `local_host`,
+  `local_port`, `remote_host` and `remote_port` are filled accordingly
+  in both types of filters.
+  
+### bind()
+
+#### **PRE** filter
+
+  * __Out__:
+  
+    * `local_host`:
+    Override the IP address to bind. If the socket is large enough,
+    it's possible to bind an IPv6 address even if the original address
+    was an IPv4 address. In this case, don't forget to also override
+    the call to `socket()`.
+    
+    * `local_port`:
+    Change the port to bind.       
 
 ## ENVIRONMENT
 
