@@ -9,6 +9,7 @@
 #include "hook-recv.h"
 #include "hook-recvfrom.h"
 #include "hook-recvmsg.h"
+#include "hook-send.h"
 #include "hook-socket.h"
 #include "hook-write.h"
 
