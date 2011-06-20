@@ -72,8 +72,8 @@ A filter should read a stream of **MessagePack** objects from the
 standard input (`stdin`) and for every object, should push a
 serialized reply to the standard output (`stdout`).
 
-Every diverted function sends exactly one PRE object and one POST
-object, and synchronously waits for a reply to each object.
+Every diverted function sends exactly one **PRE** object and one
+**POST** object, and synchronously waits for a reply to each object.
 
 ## COMMON PROPERTIES
 
@@ -143,6 +143,67 @@ Additional properties that can be added to replies for all functions
   This value is a boolean. If TRUE, the actual system call is
   bypassed. It means that you can test how your application behaves
   without actually receiving or sending data from/to the network.  
+
+## FUNCTION-SPECIFIC PROPERTIES
+
+### `write()`
+
+#### **PRE** filter
+
+__In__:
+
+  * `data`:
+  The data to be written, as a **MessagePack** __raw__ object.
+
+#### **POST** filter
+
+__In__:
+
+  * `data`:
+  The data that has been written, as a **MessagePack** __raw__ object.
+
+__Out__:
+
+  * `data`:
+  Overrides the data that was supposed to be written. The new data can
+  be of any size, and can even be larger than the initial data.
+  The return value will be automatically adjusted.
+  
+### `socket()`
+
+#### **PRE** filter
+
+__In__:
+
+  * `domain`:
+  One of `PF_LOCAL`, `PF_UNIX`, `PF_INET`, `PF_ROUTE`, `PF_KEY`, `PF_INET6`,
+  `PF_SYSTEM`, `PF_NDRV`, `PF_NETLINK` and `PF_FILE`.
+
+  * `type`:
+  One of `SOCK_STREAM`, `SOCK_DGRAM`, `SOCK_RAW`, `SOCK_SEQPACKET` and
+  `SOCK_RDM`.
+
+  * `protocol`:
+  One of `IPPROTO_IP`, `IPPROTO_ICMP`, `IPPROTO_IGMP`, `IPPROTO_IPV4`,
+  `IPPROTO_TCP`, `IPPROTO_UDP`, `IPPROTO_IPV6`, `IPPROTO_ROUTING`,
+  `IPPROTO_FRAGMENT`, `IPPROTO_GRE`, `IPPROTO_ESP`, `IPPROTO_AH`,
+  `IPPROTO_ICMPV6`, `IPPROTO_NONE`, `IPPROTO_DSTOPTS`, `IPPROTO_IPCOMP`,
+  `IPPROTO_PIM` and `IPPROTO_PGM`.
+
+__Out__:
+
+  * `domain`:
+  Override the domain.
+
+  * `type`:
+  Override the type.
+
+  * `protocol`:
+  Override the type.
+
+#### **POST** filter
+
+  **POST** filters get the same data as **PRE** filters.  
 
 ## ENVIRONMENT
 
