@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 
-# A sample filter that shuts down any connection with ECONNRESET
-# if a string is found.
+# A sample filter that shuts down a connection if a specific string is found
+# and returns CENSORED! instead of the actual content.
 
 require "msgpack"
 
@@ -18,8 +18,7 @@ loop do
       if obj["filter_type"] == "POST" &&
          ["recv", "read"].include?(obj["function"]) &&
          obj["remote_port"] == 80 && obj["data"].include?("skyrock")
-        { version: obj["version"], force_close: true, return_value: -1,
-          errno: Errno::ECONNRESET::Errno }
+        { version: obj["version"], force_close: true, data: "CENSORED!\n" }
       else
         { version: obj["version"] }
       end
