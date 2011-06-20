@@ -34,19 +34,21 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
             assert(ai->ai_addrlen <= sizeof *sa);
             if (ai->ai_family == AF_INET) {
                 assert((size_t) ai->ai_addrlen >=
-                       sizeof(((struct sockaddr_in *) (void *) sa)->sin_addr.s_addr));
-                memcpy(&((struct sockaddr_in *) (void *) sa)->sin_addr.s_addr,
-                       &((struct sockaddr_in *) (void *) ai->ai_addr)->sin_addr.s_addr,
-                       sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
+                       sizeof(STORAGE_SIN_ADDR(*sa)));
+                memcpy(&STORAGE_SIN_ADDR(*sa),
+                       &STORAGE_SIN_ADDR(* (struct sockaddr_storage *)
+                                         (void *) ai->ai_addr),
+                       sizeof(STORAGE_SIN_ADDR(*sa)));
                 *sa_len = ai->ai_addrlen;
                 STORAGE_FAMILY(*sa) = ai->ai_family;
                 SET_STORAGE_LEN(*sa, ai->ai_addrlen);
             } else if (ai->ai_family == AF_INET6) {
                 assert((size_t) ai->ai_addrlen >=
-                       sizeof(((struct sockaddr_in6 *) (void *) sa)->sin6_addr.s6_addr));
-                memcpy(&((struct sockaddr_in6 *) (void *) sa)->sin6_addr.s6_addr,
-                       &((struct sockaddr_in6 *) (void *) ai->ai_addr)->sin6_addr.s6_addr,
-                       sizeof(((struct sockaddr_in6 *) sa)->sin6_addr.s6_addr));
+                       sizeof(STORAGE_SIN_ADDR6(*sa)));
+                memcpy(&STORAGE_SIN_ADDR6(*sa),
+                       &STORAGE_SIN_ADDR6(* (struct sockaddr_storage *)
+                                          (void *) ai->ai_addr),
+                       sizeof(STORAGE_SIN_ADDR6(*sa)));
                 *sa_len = ai->ai_addrlen;                
                 STORAGE_FAMILY(*sa) = ai->ai_family;
                 SET_STORAGE_LEN(*sa, ai->ai_addrlen);
@@ -60,13 +62,11 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
     if (obj_local_port != NULL &&
         obj_local_port->type == MSGPACK_OBJECT_POSITIVE_INTEGER) {
         if (obj_local_port->via.i64 >= 0 &&
-            obj_local_port->via.i64 <= 65535) {            
+            obj_local_port->via.i64 <= 65535) {
             if (STORAGE_FAMILY(*sa) == AF_INET) {
-                ((struct sockaddr_in *) sa)->sin_port =
-                    htons((in_port_t) obj_local_port->via.i64);
+                STORAGE_PORT(*sa) = htons((in_port_t) obj_local_port->via.i64);
             } else if (STORAGE_FAMILY(*sa) == AF_INET6) {
-                ((struct sockaddr_in6 *) sa)->sin6_port =
-                    htons((in_port_t) obj_local_port->via.i64);
+                STORAGE_PORT6(*sa) = htons((in_port_t) obj_local_port->via.i64);
             }
         }
     }

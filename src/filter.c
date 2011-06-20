@@ -195,7 +195,7 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
             if (ai->ai_family == AF_INET &&
                 *sa_len >= (socklen_t) sizeof(STORAGE_SIN_ADDR(*sa))) {
                 assert((size_t) ai->ai_addrlen >=
-                       sizeof(((struct sockaddr_in *) sa)->sin_addr.s_addr));
+                       sizeof(STORAGE_SIN_ADDR(*sa)));
                 memcpy(&STORAGE_SIN_ADDR(*sa),
                        &STORAGE_SIN_ADDR(* (struct sockaddr_storage *)
                                          (void *) ai->ai_addr),
@@ -204,14 +204,14 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
                 STORAGE_FAMILY(*sa) = ai->ai_family;
                 SET_STORAGE_LEN(*sa, ai->ai_addrlen);
             } else if (ai->ai_family == AF_INET6 &&
-                      *sa_len >= (socklen_t) sizeof(STORAGE_SIN_ADDR(*sa))) {
+                      *sa_len >= (socklen_t) sizeof(STORAGE_SIN_ADDR6(*sa))) {
                 assert((size_t) ai->ai_addrlen >=
                        sizeof(STORAGE_SIN_ADDR6(*sa)));
                 memcpy(&STORAGE_SIN_ADDR6(*sa),
                        &STORAGE_SIN_ADDR6(* (struct sockaddr_storage *)
                                           (void *) ai->ai_addr),
                        sizeof(STORAGE_SIN_ADDR6(*sa)));
-                *sa_len = ai->ai_addrlen;                
+                *sa_len = ai->ai_addrlen;
                 STORAGE_FAMILY(*sa) = ai->ai_family;
                 SET_STORAGE_LEN(*sa, ai->ai_addrlen);
             }
