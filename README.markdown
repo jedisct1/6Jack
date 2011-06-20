@@ -1,11 +1,13 @@
-6Jack
+6jack
 =====
 
 A framework for analyzing/testing/fuzzing network applications.
 
+Releases can be downloaded from: http://download.pureftpd.org/6jack/
+
 ## DESCRIPTION
 
-**6Jack** runs a command, intercepts calls to common network-related
+**6jack** runs a command, intercepts calls to common network-related
 functions and pass them through a filter as **MessagePack** serialized
 objects.
   
@@ -29,7 +31,7 @@ objects.
           |                    +-----+
           V
 
-**6Jack** is especially suitable for:
+**6jack** is especially suitable for:
 
   * __Writing tests for clients and servers__:
   Tests for networked applications are ofte limited to sending a bunch
@@ -40,13 +42,13 @@ objects.
   How do you test for that? For example, how often does your test suite
   actually include tests for cases like "quota exceeded" or "no space left
   on device"?
-  6Jack makes it easy to simulate this kind of failure, without having
+  6jack makes it easy to simulate this kind of failure, without having
   to patch your existing software.
   
   * __Debugging and reverse engineering protocols__:
   **tcpdump** is a super powerful tool. However, it has been designed to
   log incoming and outgoing packets.
-  **6Jack** can alter the data sent from and to system calls. It can
+  **6jack** can alter the data sent from and to system calls. It can
   help you understand what's going on over the wire by modifying stuff
   and observing the impact.
   
@@ -54,7 +56,7 @@ objects.
   
   * __Fuzzying__
   
-**6Jack** works at application level. It's a simple library that gets
+**6jack** works at application level. It's a simple library that gets
 preloaded before the actual application.
 
 **Pre-filters** can inspect and alter the content prior to calling the
@@ -109,7 +111,7 @@ upper case, and logs every object to `stderr`:
     end
 
 Other examples are available
-[in the example-filters directory](https://github.com/jedisct1/6Jack/tree/master/example-filters).
+[in the example-filters directory](https://github.com/jedisct1/6jack/tree/master/example-filters).
 
 ## COMMON PROPERTIES
 
@@ -286,7 +288,7 @@ Additional properties that can be added to replies for all functions
     
     * `data`:
     A raw **MessagePack** with the data to be send.
-    **6Jack** makes it appear as a single blob even though it might
+    **6jack** makes it appear as a single blob even though it might
     actually be fragmented in multiple vectors.
 
   * __Out__:
@@ -364,7 +366,7 @@ Additional properties that can be added to replies for all functions
     
     * `data`:
     Make as if this data had been read instead of the real data. The
-    size shouldn't exceed `nbyte`. **6Jack** will automatically
+    size shouldn't exceed `nbyte`. **6jack** will automatically
     fragment it across multiple vectors if needed.
 
 ### recvfrom()
@@ -514,7 +516,7 @@ When a `SIXJACK_BYPASS` environment variable is defined, calls are not
 diverted to the filter any more.
 
 An application is free to set and unset `SIXJACK_BYPASS`, in order to
-explicitly disable **6Jack** in some sections.
+explicitly disable **6jack** in some sections.
 
 ## SAMPLE OUTPUT
 

@@ -10,10 +10,10 @@
 \fB6jack\fR \fIfilter\fR \fIcommand\fR [\fIargs\fR]
 .
 .SH "DESCRIPTION"
-\fB6Jack\fR runs a command, intercepts calls to common network\-related functions and pass them through a filter as \fBMessagePack\fR serialized objects\.
+\fB6jack\fR runs a command, intercepts calls to common network\-related functions and pass them through a filter as \fBMessagePack\fR serialized objects\.
 .
 .P
-\fB6Jack\fR works at application level\. It\'s a simple library that gets preloaded before the actual application\.
+\fB6jack\fR works at application level\. It\'s a simple library that gets preloaded before the actual application\.
 .
 .P
 \fBPre\-filters\fR can inspect and alter the content prior to calling the actual function\. A \fBpre\-filter\fR can also totally bypass the actual call, in order to simulate a call without actually hitting the network\.
@@ -71,19 +71,22 @@ write(2)
 When a \fBSIXJACK_BYPASS\fR environment variable is defined, calls are not diverted to the filter any more\.
 .
 .P
-An application is free to set and unset \fBSIXJACK_BYPASS\fR, in order to explicitly disable \fB6Jack\fR in some sections\.
+An application is free to set and unset \fBSIXJACK_BYPASS\fR, in order to explicitly disable \fB6jack\fR in some sections\.
 .
 .SH "RETURN VALUES"
-\fB6Jack\fR returns the exit value of \fIcommand\fR after completion\.
+\fB6jack\fR returns the exit value of \fIcommand\fR after completion\.
 .
 .SH "SECURITY CONSIDERATIONS"
-\fB6Jack\fR has been designed as a tool for testing applications\.
+\fB6jack\fR has been designed as a tool for testing applications\.
 .
 .P
 It is not suitable for running in a production environment or with untrusted data / filters\.
 .
 .SH "WWW"
-\fB6Jack\fR is hosted on Github: \fBhttps://github\.com/jedisct1/6jack\fR
+\fB6jack\fR is hosted on Github: \fBhttps://github\.com/jedisct1/6jack\fR
+.
+.P
+Releases can be downloaded from: http://download\.pureftpd\.org/6jack/
 .
 .SH "SEE ALSO"
 \fBMessagePack\fR home page: \fBhttp://msgpack\.org/\fR

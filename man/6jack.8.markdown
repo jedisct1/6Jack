@@ -7,11 +7,11 @@
 
 ## DESCRIPTION
 
-**6Jack** runs a command, intercepts calls to common network-related
+**6jack** runs a command, intercepts calls to common network-related
 functions and pass them through a filter as **MessagePack** serialized
 objects.
 
-**6Jack** works at application level. It's a simple library that gets
+**6jack** works at application level. It's a simple library that gets
 preloaded before the actual application.
 
 **Pre-filters** can inspect and alter the content prior to calling the
@@ -51,22 +51,24 @@ When a `SIXJACK_BYPASS` environment variable is defined, calls are not
 diverted to the filter any more.
 
 An application is free to set and unset `SIXJACK_BYPASS`, in order to
-explicitly disable **6Jack** in some sections.
+explicitly disable **6jack** in some sections.
 
 ## RETURN VALUES
 
-**6Jack** returns the exit value of <command> after completion.
+**6jack** returns the exit value of <command> after completion.
 
 ## SECURITY CONSIDERATIONS
 
-**6Jack** has been designed as a tool for testing applications.
+**6jack** has been designed as a tool for testing applications.
 
 It is not suitable for running in a production environment or with
 untrusted data / filters.
 
 ## WWW
 
-**6Jack** is hosted on Github: `https://github.com/jedisct1/6jack`
+**6jack** is hosted on Github: `https://github.com/jedisct1/6jack`
+
+Releases can be downloaded from: http://download.pureftpd.org/6jack/
 
 ## SEE ALSO
 
