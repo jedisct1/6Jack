@@ -1,5 +1,8 @@
 #! /usr/bin/env ruby
 
+# A trivial 6jack filter that receives messages and echoes them.
+# All messages are printed to stderr by the way.
+
 require "msgpack"
 require "awesome_print"
 
@@ -17,4 +20,3 @@ loop do
     STDOUT.flush
   end
 end
-

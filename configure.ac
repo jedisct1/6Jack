@@ -85,6 +85,7 @@ AC_ARG_WITH(debug,
 AC_SUBST([MAINT])
 
 AC_CONFIG_FILES([Makefile
+                 example-filters/Makefile
                  src/Makefile
                  man/Makefile])
 AC_OUTPUT

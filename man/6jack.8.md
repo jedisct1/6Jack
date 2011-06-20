@@ -49,6 +49,10 @@ diverted to the filter any more.
 An application is free to set and unset `SIXJACK_BYPASS`, in order to
 explicitly disable **6Jack** in some sections.
 
+## RETURN VALUES
+
+**6Jack** returns the exit value of <command> after completion.
+
 ## SECURITY CONSIDERATIONS
 
 **6Jack** has been designed as a tool for testing applications.
