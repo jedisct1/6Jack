@@ -57,13 +57,17 @@ preloaded before the actual application.
 
 **Pre-filters** can inspect and alter the content prior to calling the
 actual function. Data, options and local/remote IP addresses and port
-can be changed by filter.
+can be easily changed by the filter.
 A **pre-filter** can also totally bypass the actual call, in order to
 simulate a call without actually hitting the network.
 
 **Post-filters** can inspect and alter the content after the actual call.
 In particular, **post-filters** can change return values and the `errno`
 value in order to simulate failures.
+
+## SYNOPSIS
+
+`6jack filter command [args]`
 
 ## FILTERS
 
@@ -150,7 +154,7 @@ Additional properties that can be added to replies for all functions
 
 ## FUNCTION-SPECIFIC PROPERTIES
 
-### `write()`
+### write()
 
 #### **PRE** filter
 
@@ -173,7 +177,7 @@ Additional properties that can be added to replies for all functions
     * `data`:
     The data that has been written, as a **MessagePack** __raw__ object.
 
-### `socket()`
+### socket()
 
 #### **PRE** filter
 
@@ -207,9 +211,9 @@ Additional properties that can be added to replies for all functions
 
 #### **POST** filter
 
-  **POST** filters get the same data as **PRE** filters.  
+  Same as a PRE filter.
 
-### `sendto()`
+### sendto()
 
 #### **PRE** filter
 
@@ -243,7 +247,7 @@ Additional properties that can be added to replies for all functions
   
   Same as the **PRE** filter.
   
-### `sendmsg()`
+### sendmsg()
 
 #### **PRE** filter
 
@@ -272,6 +276,68 @@ Additional properties that can be added to replies for all functions
     
     * `remote_port`:
     Change the port the data is sent to.    
+
+### send()
+
+#### **PRE** filter
+
+  * __In__:
+
+    * `data`:
+    The data to be written, as a **MessagePack** __raw__ object.
+
+    * `flags`:
+    Flags to send to the function.
+
+  * __Out__:
+
+    * `data`:
+    Overrides the data that was supposed to be written. The new data can
+    be of any size, and can even be larger than the initial data.
+    The return value will be automatically adjusted.
+
+    * `flags`:
+    Override the flags to be sent to the function.
+
+#### **POST** filter
+
+  * __In__:
+
+    * `data`:
+    The data that has been written, as a **MessagePack** __raw__ object.
+
+    * `flags`:
+    Flags sent to the function.
+
+### recvmsg()
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `flags`:
+    Flags to send to the function.
+
+    * `nbyte`:
+    The total size of the read buffer, even if it is split across
+    multiple vectors.
+    
+  * __Out__:
+  
+    * `flags`:
+    Override flags.
+    
+#### **POST** filter
+
+  * __In__:
+  
+    * `flags`:
+    Flags used when calling the function.
+    
+    * `data`:
+    Make as if this data had been read instead of the real data. The
+    size shouldn't exceed `nbyte`. **6Jack** will automatically
+    fragment it across multiple vectors if needed.
 
 ## ENVIRONMENT
 
