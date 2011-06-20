@@ -108,6 +108,9 @@ upper case, and logs every object to `stderr`:
       end
     end
 
+Other examples are available
+[in the example-filters directory](https://github.com/jedisct1/6Jack/tree/master/example-filters).
+
 ## COMMON PROPERTIES
 
 Objects sent by all diverted functions include the following properties:
