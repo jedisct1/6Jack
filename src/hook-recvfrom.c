@@ -65,7 +65,8 @@ static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
 {
     msgpack_packer * const msgpack_packer = rb->filter->msgpack_packer;
     filter_before_apply(rb, 2U, "recvfrom",
-                        sa_local, sa_local_len, sa_remote, *sa_remote_len);
+                        sa_local, sa_local_len, sa_remote,
+                        sa_remote_len ? *sa_remote_len : 0U);
     
     msgpack_pack_mstring(msgpack_packer, "flags");
     msgpack_pack_int(msgpack_packer, *flags);

@@ -1,7 +1,7 @@
 
 6Jack's only dependency is MessagePack: http://msgpack.org/
 
-It has been tested on OSX and OpenBSD.
+It has been tested on OSX, OpenBSD and Linux.
 
 OpenBSD requires support for posix_spawn():
 http://download.pureftpd.org/misc/OpenBSD/patches/posix_spawn.diff
