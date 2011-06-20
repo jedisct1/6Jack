@@ -110,7 +110,7 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
         getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
     socklen_t sa_local_len;
-    get_sock_info(fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);
+    get_sock_info(fd, &sa_local_, &sa_local_len, NULL, NULL);
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
@@ -120,7 +120,7 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
     };
     if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, sa_local_, sa_local_len,
-                     NULL, (socklen_t) 0U, NULL, &new_nbyte, &flags)
+                     NULL, NULL, NULL, &new_nbyte, &flags)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }

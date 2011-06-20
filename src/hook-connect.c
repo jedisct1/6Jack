@@ -26,7 +26,7 @@ static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
 {
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
     socklen_t sa_local_len;
-    get_sock_info(rb->fd, &sa_local_, &sa_local_len, NULL, (socklen_t) 0U);
+    get_sock_info(rb->fd, &sa_local_, &sa_local_len, NULL, NULL);
     filter_before_apply(rb, 0U, "connect",
                         sa_local_, sa_local_len, sa, *sa_len);
     if (filter_send_message(rb->filter) != 0) {
