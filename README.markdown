@@ -50,15 +50,19 @@ objects.
   help you understand what's going on over the wire by modifying stuff
   and observing the impact.
   
+  * Sketching filtering proxies.
+  
 **6Jack** works at application level. It's a simple library that gets
 preloaded before the actual application.
 
 **Pre-filters** can inspect and alter the content prior to calling the
-actual function. A **pre-filter** can also totally bypass the actual call,
-in order to simulate a call without actually hitting the network.
+actual function. Data, options and local/remote IP addresses and port
+can be changed by filter.
+A **pre-filter** can also totally bypass the actual call, in order to
+simulate a call without actually hitting the network.
 
 **Post-filters** can inspect and alter the content after the actual call.
-In particular, **post-filters** can change return codes and the `errno`
+In particular, **post-filters** can change return values and the `errno`
 value in order to simulate failures.
 
 ## FILTERS
@@ -150,60 +154,124 @@ Additional properties that can be added to replies for all functions
 
 #### **PRE** filter
 
-__In__:
+  * __In__:
 
-  * `data`:
-  The data to be written, as a **MessagePack** __raw__ object.
+    * `data`:
+    The data to be written, as a **MessagePack** __raw__ object.
 
+  * __Out__:
+
+    * `data`:
+    Overrides the data that was supposed to be written. The new data can
+    be of any size, and can even be larger than the initial data.
+    The return value will be automatically adjusted.
+  
 #### **POST** filter
 
-__In__:
+  * __In__:
 
-  * `data`:
-  The data that has been written, as a **MessagePack** __raw__ object.
+    * `data`:
+    The data that has been written, as a **MessagePack** __raw__ object.
 
-__Out__:
-
-  * `data`:
-  Overrides the data that was supposed to be written. The new data can
-  be of any size, and can even be larger than the initial data.
-  The return value will be automatically adjusted.
-  
 ### `socket()`
 
 #### **PRE** filter
 
-__In__:
+  * __In__:
 
-  * `domain`:
-  One of `PF_LOCAL`, `PF_UNIX`, `PF_INET`, `PF_ROUTE`, `PF_KEY`, `PF_INET6`,
-  `PF_SYSTEM`, `PF_NDRV`, `PF_NETLINK` and `PF_FILE`.
+    * `domain`:
+    One of `PF_LOCAL`, `PF_UNIX`, `PF_INET`, `PF_ROUTE`, `PF_KEY`, `PF_INET6`,
+    `PF_SYSTEM`, `PF_NDRV`, `PF_NETLINK` and `PF_FILE`.
 
-  * `type`:
-  One of `SOCK_STREAM`, `SOCK_DGRAM`, `SOCK_RAW`, `SOCK_SEQPACKET` and
-  `SOCK_RDM`.
+    * `type`:
+    One of `SOCK_STREAM`, `SOCK_DGRAM`, `SOCK_RAW`, `SOCK_SEQPACKET` and
+    `SOCK_RDM`.
 
-  * `protocol`:
-  One of `IPPROTO_IP`, `IPPROTO_ICMP`, `IPPROTO_IGMP`, `IPPROTO_IPV4`,
-  `IPPROTO_TCP`, `IPPROTO_UDP`, `IPPROTO_IPV6`, `IPPROTO_ROUTING`,
-  `IPPROTO_FRAGMENT`, `IPPROTO_GRE`, `IPPROTO_ESP`, `IPPROTO_AH`,
-  `IPPROTO_ICMPV6`, `IPPROTO_NONE`, `IPPROTO_DSTOPTS`, `IPPROTO_IPCOMP`,
-  `IPPROTO_PIM` and `IPPROTO_PGM`.
+    * `protocol`:
+    One of `IPPROTO_IP`, `IPPROTO_ICMP`, `IPPROTO_IGMP`, `IPPROTO_IPV4`,
+    `IPPROTO_TCP`, `IPPROTO_UDP`, `IPPROTO_IPV6`, `IPPROTO_ROUTING`,
+    `IPPROTO_FRAGMENT`, `IPPROTO_GRE`, `IPPROTO_ESP`, `IPPROTO_AH`,
+    `IPPROTO_ICMPV6`, `IPPROTO_NONE`, `IPPROTO_DSTOPTS`, `IPPROTO_IPCOMP`,
+    `IPPROTO_PIM` and `IPPROTO_PGM`.
 
-__Out__:
+  * __Out__:
 
-  * `domain`:
-  Override the domain.
+    * `domain`:
+    Override the domain.
 
-  * `type`:
-  Override the type.
+    * `type`:
+    Override the type.
 
-  * `protocol`:
-  Override the type.
+    * `protocol`:
+    Override the type.
 
 #### **POST** filter
 
   **POST** filters get the same data as **PRE** filters.  
+
+### `sendto()`
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `flags`:
+    `sendto()` flags.
+    
+    * `data`:
+    A raw **MessagePack** with the data to be send.
+    
+  * __Out__:
+  
+    * `flags`:
+    Alter the flags.
+    
+    * `data`:
+    Alter the content to be send. The size can differ from the size of
+    the initial data. Sending more data is allowed.
+    
+    * `remote_host`:
+    Change the remote host by providing the IP address of the new
+    host. IPv6 is fully supported.
+    
+    * `remote_port`:
+    Change the port the data is sent to.
+    
+#### **POST** filter
+
+  * __In__:
+  
+  Same as the **PRE** filter.
+  
+### `sendmsg()`
+
+#### **PRE** filter
+
+  * __In__:
+  
+    * `flags`:
+    `sendto()` flags.
+    
+    * `data`:
+    A raw **MessagePack** with the data to be send.
+    **6Jack** makes it appear as a single blob even though it might
+    actually be fragmented in multiple vectors.
+
+  * __Out__:
+  
+    * `flags`:
+    Alter the flags.
+    
+    * `data`:
+    Alter the content to be send. The size can differ from the size of
+    the initial data. Sending more data is allowed.
+    
+    * `remote_host`:
+    Change the remote host by providing the IP address of the new
+    host. IPv6 is fully supported.
+    
+    * `remote_port`:
+    Change the port the data is sent to.    
 
 ## ENVIRONMENT
 
