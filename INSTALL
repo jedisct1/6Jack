@@ -1,0 +1,18 @@
+
+6Jack's only dependency is MessagePack: http://msgpack.org/
+
+It has been tested on OSX, OpenBSD and Linux.
+
+OpenBSD requires support for posix_spawn():
+http://download.pureftpd.org/misc/OpenBSD/patches/posix_spawn.diff
+
+If you fetched the code from Github instead of the .tar archive, you
+also need autoconf, automake and libtools, except on OSX.
+The run (this step is NOT needed if you extracted the .tar archive):
+
+./autogen.sh
+
+Once you have all the prerequisites, compilation and installation
+should be as boring as the usual:
+
+./configure && make install
