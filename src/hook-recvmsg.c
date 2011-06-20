@@ -145,7 +145,7 @@ ssize_t INTERPOSE(recvmsg)(int fd, struct msghdr *msg, int flags)
     struct iovec * const vecs = msg->msg_iov;
     int i_vecs = 0;
     while (i_vecs < msg->msg_iovlen) {
-        assert(SIZE_T_MAX - nbyte >= vecs[i_vecs].iov_len);
+        assert(SIZE_MAX - nbyte >= vecs[i_vecs].iov_len);
         nbyte += vecs[i_vecs].iov_len;
         i_vecs++;
     }
