@@ -43,7 +43,7 @@ extern char **environ;
 # endif
 #endif
 
-#if defined(__APPLE__) && !defined(__clang__)
+#if defined(__APPLE__)
 # define USE_INTERPOSERS 1
 #endif
 
