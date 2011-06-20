@@ -13,6 +13,9 @@
 \fB6Jack\fR runs a command, intercepts calls to common network\-related functions and pass them through a filter as \fBMessagePack\fR serialized objects\.
 .
 .P
+\fB6Jack\fR works at application level\. It\'s a simple library that gets preloaded before the actual application\.
+.
+.P
 \fBPre\-filters\fR can inspect and alter the content prior to calling the actual function\. A \fBpre\-filter\fR can also totally bypass the actual call, in order to simulate a call without actually hitting the network\.
 .
 .P

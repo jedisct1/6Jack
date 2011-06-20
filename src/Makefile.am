@@ -65,6 +65,5 @@ do_subst = \
 CLEANFILES = $(bin_SCRIPTS)
 
 EXTRA_DIST = \
-	example-filter.rb \
 	6jack.in
 

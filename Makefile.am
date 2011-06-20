@@ -6,4 +6,5 @@ dist_doc_DATA = README.markdown
 
 SUBDIRS = \
 	src \
-	man
+	man \
+	example-filters
