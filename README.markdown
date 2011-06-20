@@ -31,7 +31,7 @@ objects.
 
 **6Jack** is especially suitable for:
 
-  * __Writing tests for clients and servers__
+  * __Writing tests for clients and servers__:
   Tests for networked applications are ofte limited to sending a bunch
   of requests and comparing the answers to the expected ones.
   However, in production, system calls can fail for a variety of reasons.
@@ -43,7 +43,7 @@ objects.
   6Jack makes it easy to simulate this kind of failure, without having
   to patch your existing software.
   
-  * __Debugging and reverse engineering protocols__
+  * __Debugging and reverse engineering protocols__:
   **tcpdump** is a super powerful tool. However, it has been designed to
   log incoming and outgoing packets.
   **6Jack** can alter the data sent from and to system calls. It can
