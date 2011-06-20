@@ -7,8 +7,12 @@
 
 ## DESCRIPTION
 
-**6Jack** runs <command> and diverts calls to common network-related
-functions to a filter as **messagepack** serialized objects.
+**6Jack** runs a command, intercepts calls to common network-related
+functions and pass them through a filter as **MessagePack** serialized
+objects.
+
+**6Jack** works at application level. It's a simple library that gets
+preloaded before the actual application.
 
 **Pre-filters** can inspect and alter the content prior to calling the
 actual function. A **pre-filter** can also totally bypass the actual call,
@@ -23,7 +27,7 @@ value in order to simulate failures.
 <command> is the name of the command to run.
 
 <filter> is the absolute path to an application that receives a stream of
-**messagepack** serialized objects on `stdin` and for every object, should
+**MessagePack** serialized objects on `stdin` and for every object, should
 push a serialized reply to `stdout`.
 
 ## DIVERTED FUNCTIONS
