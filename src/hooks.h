@@ -10,6 +10,7 @@
 #include "hook-recvfrom.h"
 #include "hook-recvmsg.h"
 #include "hook-send.h"
+#include "hook-sendto.h"
 #include "hook-socket.h"
 #include "hook-write.h"
 
