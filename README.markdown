@@ -8,7 +8,7 @@ Releases can be downloaded from: http://download.pureftpd.org/6jack/
 ## DESCRIPTION
 
 **6jack** runs a command, intercepts calls to common network-related
-functions and pass them through a filter as **MessagePack** serialized
+functions and passes them through a filter as **MessagePack** serialized
 objects.
   
          App                External process
@@ -34,19 +34,18 @@ objects.
 **6jack** is especially suitable for:
 
   * __Writing tests for clients and servers__:
-  Tests for networked applications are ofte limited to sending a bunch
+  Tests for networked applications are often limited to sending a bunch
   of requests and comparing the answers to the expected ones.
   However, in production, system calls can fail for a variety of reasons.
   Packets get lost or delayed. Weird queries are received because of bogus
   clients or attackers. Content can get altered by third parties.
   How do you test for that? For example, how often does your test suite
-  actually include tests for cases like "quota exceeded" or "no space left
-  on device"?
+  actually include tests for cases like EINTR and ENOBUFS?
   6jack makes it easy to simulate this kind of failure, without having
   to patch your existing software.
   
   * __Debugging and reverse engineering protocols__:
-  **tcpdump** is a super powerful tool. However, it has been designed to
+  tcpdump is a super powerful tool. However, it has been designed to
   log incoming and outgoing packets.
   **6jack** can alter the data sent from and to system calls. It can
   help you understand what's going on over the wire by modifying stuff
@@ -54,7 +53,7 @@ objects.
   
   * __Sketching filtering proxies__
   
-  * __Fuzzying__
+  * __Fuzzing__
   
 **6jack** works at application level. It's a simple library that gets
 preloaded before the actual application.

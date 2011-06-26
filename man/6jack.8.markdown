@@ -8,7 +8,7 @@
 ## DESCRIPTION
 
 **6jack** runs a command, intercepts calls to common network-related
-functions and pass them through a filter as **MessagePack** serialized
+functions and passes them through a filter as **MessagePack** serialized
 objects.
 
 **6jack** works at application level. It's a simple library that gets
