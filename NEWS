@@ -1,0 +1,6 @@
+
+* Version 0.2:
+ - Fix for a NULL pointer crash in the sendto() post-filter hook.
+
+* Version 0.1:
+ - Initial release.
