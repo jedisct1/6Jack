@@ -122,7 +122,7 @@ ssize_t INTERPOSE(sendto)(int fd, const void *buf, size_t nbyte, int flags,
     if (bypass_filter == false) {
         rb.pre = false;
         filter_apply(&rb, sa_local_, sa_local_len,
-                     &sa_remote_, &sa_remote_len_, NULL, &new_nbyte, NULL);
+                     &sa_remote_, &sa_remote_len_, &buf, &new_nbyte, &flags);
     }
     errno = ret_errno;
     
