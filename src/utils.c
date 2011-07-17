@@ -39,19 +39,15 @@ int safe_write(const int fd, const void * const buf_, size_t count,
     pfd.events = POLLOUT;
     
     while (count > (size_t) 0) {
-        for (;;) {
-            if ((written = write(fd, buf, count)) <= (ssize_t) 0) {
-                if (errno == EAGAIN) {
-                    if (poll(&pfd, (nfds_t) 1, timeout) == 0) {
-                        errno = ETIMEDOUT;
-                        return -1;
-                    }
-                } else if (errno != EINTR) {
+        while ((written = write(fd, buf, count)) <= (ssize_t) 0) {
+            if (errno == EAGAIN) {
+                if (poll(&pfd, (nfds_t) 1, timeout) == 0) {
+                    errno = ETIMEDOUT;
                     return -1;
                 }
-                continue;
+            } else if (errno != EINTR) {
+                return -1;
             }
-            break;
         }
         buf += written;
         count -= written;
