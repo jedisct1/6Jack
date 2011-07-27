@@ -20,10 +20,13 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
         msgpack_get_map_value_for_key(map, "local_host");
     if (obj_local_host != NULL &&
         obj_local_host->type == MSGPACK_OBJECT_RAW &&
+        obj_local_host->via.raw.size > 0 &&
         obj_local_host->via.raw.size < NI_MAXHOST) {
         struct addrinfo *ai, hints;
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
         hints.ai_flags = NI_NUMERICHOST | AI_PASSIVE;
         char new_local_host[NI_MAXHOST];
         memcpy(new_local_host, obj_local_host->via.raw.ptr,

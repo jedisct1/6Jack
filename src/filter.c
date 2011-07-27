@@ -185,6 +185,8 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
         struct addrinfo *ai, hints;
         memset(&hints, 0, sizeof hints);
         hints.ai_family = AF_UNSPEC;
+        hints.ai_socktype = SOCK_STREAM;
+        hints.ai_protocol = IPPROTO_TCP;
         hints.ai_flags = NI_NUMERICHOST | AI_ADDRCONFIG;
         char new_host[NI_MAXHOST];
         memcpy(new_host, obj_host->via.raw.ptr,
