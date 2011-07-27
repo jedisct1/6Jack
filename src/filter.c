@@ -180,6 +180,7 @@ int filter_overwrite_sa_with_reply_map(const msgpack_object_map * const map,
         msgpack_get_map_value_for_key(map, key_host);
     if (obj_host != NULL &&
         obj_host->type == MSGPACK_OBJECT_RAW &&
+        obj_host->via.raw.size > 0 &&
         obj_host->via.raw.size < NI_MAXHOST) {
         struct addrinfo *ai, hints;
         memset(&hints, 0, sizeof hints);
