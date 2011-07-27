@@ -99,7 +99,7 @@ ssize_t INTERPOSE(sendto)(int fd, const void *buf, size_t nbyte, int flags,
     bool bypass_call = false;
     struct sockaddr_storage sa_remote_;
     socklen_t sa_remote_len_ = sa_remote_len;
-    assert(sa_remote_len <= sizeof sa_remote_len_);
+    assert(sa_remote_len <= sizeof sa_remote_);
     memcpy(&sa_remote_, sa_remote, sa_remote_len);
     size_t new_nbyte = nbyte;
     FilterReplyResultBase rb = {
