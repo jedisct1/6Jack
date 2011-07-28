@@ -97,23 +97,27 @@ ssize_t INTERPOSE(sendto)(int fd, const void *buf, size_t nbyte, int flags,
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
-    struct sockaddr_storage sa_remote_;
-    socklen_t sa_remote_len_ = sa_remote_len;
-    assert(sa_remote_len <= sizeof sa_remote_);
-    memcpy(&sa_remote_, sa_remote, sa_remote_len);
+    struct sockaddr_storage sa_remote_copy, *sa_remote_ = NULL;
+    socklen_t sa_remote_len_ = (socklen_t) 0;
+    assert(sa_remote_len <= sizeof sa_remote_copy);
+    if (sa_remote != NULL) {
+        sa_remote_len_ = sa_remote_len;
+        memcpy(&sa_remote_copy, sa_remote, sa_remote_len);
+        sa_remote_ = &sa_remote_copy;
+    }
     size_t new_nbyte = nbyte;
     FilterReplyResultBase rb = {
         .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = fd
     };
     if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, sa_local_, sa_local_len,
-                     &sa_remote_, &sa_remote_len_, &buf, &new_nbyte, &flags)
+                     sa_remote_, &sa_remote_len_, &buf, &new_nbyte, &flags)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
     if (bypass_call == false) {
         ssize_t ret_ = __real_sendto(fd, buf, new_nbyte, flags,
-                                     (const struct sockaddr *) &sa_remote_,
+                                     (const struct sockaddr *) sa_remote_,
                                      sa_remote_len_);
         ret_errno = errno;
         ret = (int) ret_;
@@ -122,7 +126,7 @@ ssize_t INTERPOSE(sendto)(int fd, const void *buf, size_t nbyte, int flags,
     if (bypass_filter == false) {
         rb.pre = false;
         filter_apply(&rb, sa_local_, sa_local_len,
-                     &sa_remote_, &sa_remote_len_, &buf, &new_nbyte, &flags);
+                     sa_remote_, &sa_remote_len_, &buf, &new_nbyte, &flags);
     }
     errno = ret_errno;
     
