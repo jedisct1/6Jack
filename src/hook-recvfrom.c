@@ -110,8 +110,11 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
     const bool bypass_filter =
         getenv("SIXJACK_BYPASS") != NULL || is_socket(fd) == false;
     struct sockaddr_storage sa_local, *sa_local_ = &sa_local;
-    socklen_t sa_local_len;
-    get_sock_info(fd, &sa_local_, &sa_local_len, NULL, NULL);
+    socklen_t sa_local_len;    
+    struct sockaddr_storage sa_remote_copy, *sa_remote_copy_ = &sa_remote_copy;
+    socklen_t sa_remote_copy_len = sizeof sa_remote_copy;
+    get_sock_info(fd, &sa_local_, &sa_local_len,
+                  &sa_remote_copy_, &sa_remote_copy_len);
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
@@ -121,13 +124,17 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
     };
     if (bypass_filter == false && (rb.filter = filter_get()) &&
         filter_apply(&rb, sa_local_, sa_local_len,
-                     NULL, NULL, NULL, &new_nbyte, &flags)
+                     sa_remote_copy_, &sa_remote_copy_len, NULL,
+                     &new_nbyte, &flags)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
     if (bypass_call == false) {
+        sa_remote_copy_len = sizeof sa_remote_copy;
+        sa_remote_copy_ = &sa_remote_copy;
         ssize_t ret_ = __real_recvfrom(fd, buf, new_nbyte, flags,
-                                       sa_remote, sa_remote_len);
+                                       (struct sockaddr *) sa_remote_copy_,
+                                       &sa_remote_copy_len);
         ret_errno = errno;
         ret = (int) ret_;
         assert((ssize_t) ret_ == ret);
@@ -135,8 +142,13 @@ ssize_t INTERPOSE(recvfrom)(int fd, void *buf, size_t nbyte, int flags,
     if (bypass_filter == false) {
         rb.pre = false;
         filter_apply(&rb, sa_local_, sa_local_len,
-                     (struct sockaddr_storage *) (void *) sa_remote,
-                     sa_remote_len, buf, &new_nbyte, &flags);
+                     (struct sockaddr_storage *) sa_remote_copy_,
+                     &sa_remote_copy_len, buf, &new_nbyte, &flags);
+        if (sa_remote != NULL && sa_remote_len != NULL &&
+            sa_remote_copy_len <= *sa_remote_len) {
+            memcpy(sa_remote, sa_remote_copy_, sa_remote_copy_len);
+            *sa_remote_len = sa_remote_copy_len;            
+        }
     }
     errno = ret_errno;
     
