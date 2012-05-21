@@ -156,8 +156,8 @@ AC_CHECK_FUNCS([atexit socket strerror])
 # Switches
 AC_HEADER_ASSERT
 
-AC_ARG_WITH(debug,
-[AS_HELP_STRING(--with-debug,For maintainers only - please do not use)],
+AC_ARG_ENABLE(debug,
+[AS_HELP_STRING(--enable-debug,For maintainers only - please do not use)],
 [ if test "x$withval" = "xyes" ; then
     CFLAGS="$CFLAGS -DDEBUG=1 -g -Werror -Wall -W -Wcast-align -Wbad-function-cast -Wstrict-prototypes -Wwrite-strings -Wreturn-type "
   fi ])
