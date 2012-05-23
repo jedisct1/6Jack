@@ -27,9 +27,8 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
         *rb->ret > 0) {
         int i, ret = 0;
 
-        /* This leak as we don't know how the original application is keeping track of this */
-        struct iovec *niovev = malloc(sizeof(struct iovec) * obj_data->via.array.size);
-        
+        struct iovec *niovec = malloc(sizeof(struct iovec) * obj_data->via.array.size);
+
         *iovcnt = obj_data->via.array.size;
                
         for (i = 0; i < obj_data->via.array.size; i++) {
@@ -37,13 +36,13 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
             
             assert(obj_data_part.type == MSGPACK_OBJECT_RAW);
             
-            niovev[i].iov_len = (size_t) obj_data_part.via.raw.size;
-            niovev[i].iov_base = obj_data_part.via.raw.ptr;
+            niovec[i].iov_len = (size_t) obj_data_part.via.raw.size;
+            niovec[i].iov_base = (void *) obj_data_part.via.raw.ptr;
             
             ret += obj_data_part.via.raw.size;
         }
         
-        *iov = niovev;
+        *iov = niovec;
         *rb->ret = (int) ret;
     }    
     
@@ -103,6 +102,8 @@ ssize_t INTERPOSE(writev)(int fd, const struct iovec *iov, int iovcnt)
     int ret = 0;
     int ret_errno = 0;    
     bool bypass_call = false;
+    struct iovec *tiov = (struct iovec *)iov;
+    
     FilterReplyResultBase rb = {
         .pre = true, .ret = &ret, .ret_errno = &ret_errno, .fd = fd
     };
@@ -112,6 +113,7 @@ ssize_t INTERPOSE(writev)(int fd, const struct iovec *iov, int iovcnt)
         == FILTER_REPLY_BYPASS) {
         bypass_call = true;
     }
+
     if (bypass_call == false) {
         ssize_t ret_ = __real_writev(fd, iov, iovcnt);
         ret_errno = errno;        
@@ -124,6 +126,10 @@ ssize_t INTERPOSE(writev)(int fd, const struct iovec *iov, int iovcnt)
                      sa_remote_, sa_remote_len, &iov, &iovcnt);
     }
     errno = ret_errno;
+    
+    if (tiov != iov) {
+        free((void*)iov);
+    }
     
     return ret;
 }
