@@ -14,6 +14,7 @@
 #include "hook-sendto.h"
 #include "hook-socket.h"
 #include "hook-write.h"
+#include "hook-writev.h"
 
 int hooks_init(void);
 
