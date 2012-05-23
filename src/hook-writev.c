@@ -16,6 +16,37 @@ static FilterReplyResult filter_parse_reply(FilterReplyResultBase * const rb,
     const msgpack_object_map * const map = &message->data.via.map;
     FilterReplyResult reply_result = filter_parse_common_reply_map(rb, map);
 
+    if (rb->pre == false) {
+        return reply_result;
+    }
+
+    const msgpack_object * const obj_data =
+        msgpack_get_map_value_for_key(map, "data");
+
+    if (obj_data != NULL && obj_data->type == MSGPACK_OBJECT_ARRAY &&
+        *rb->ret > 0) {
+        int i, ret = 0;
+
+        /* This leak as we don't know how the original application is keeping track of this */
+        struct iovec *niovev = malloc(sizeof(struct iovec) * obj_data->via.array.size);
+        
+        *iovcnt = obj_data->via.array.size;
+               
+        for (i = 0; i < obj_data->via.array.size; i++) {
+            msgpack_object obj_data_part = obj_data->via.array.ptr[i];
+            
+            assert(obj_data_part.type == MSGPACK_OBJECT_RAW);
+            
+            niovev[i].iov_len = (size_t) obj_data_part.via.raw.size;
+            niovev[i].iov_base = obj_data_part.via.raw.ptr;
+            
+            ret += obj_data_part.via.raw.size;
+        }
+        
+        *iov = niovev;
+        *rb->ret = (int) ret;
+    }    
+    
     return reply_result;
 }
 
