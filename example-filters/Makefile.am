@@ -3,4 +3,5 @@ EXTRA_DIST= \
 	filter-transparent-proxy.rb \
 	filter-uppercase.rb \
 	filter-unreliable-connect.rb \
-	filter-string.rb
+	filter-string.rb \
+	filter-passthrough.php
