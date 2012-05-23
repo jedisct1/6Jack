@@ -205,6 +205,29 @@ Additional properties that can be added to replies for all functions
 
     * `data`:
     The data that has been written, as a **MessagePack** __raw__ object.
+    
+### writev()
+
+#### **PRE** filter
+
+  * __In__:
+
+    * `data`:
+    The data to be written, as a **MessagePack** __array__ object.
+
+  * __Out__:
+
+    * `data`:
+    Overrides the data that was supposed to be written. The new data can
+    be of any size, and can even be larger than the initial data.
+    The return value will be automatically adjusted.
+  
+#### **POST** filter
+
+  * __In__:
+
+    * `data`:
+    The data that has been written, as a **MessagePack** __array__ object.
 
 ### socket()
 
