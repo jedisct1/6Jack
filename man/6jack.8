@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "6JACK" "8" "June 2011" "" ""
+.TH "6JACK" "8" "May 2012" "" ""
 .
 .SH "NAME"
 \fB6jack\fR \- A framework for analyzing/testing/fuzzing network applications
@@ -10,7 +10,7 @@
 \fB6jack\fR \fIfilter\fR \fIcommand\fR [\fIargs\fR]
 .
 .SH "DESCRIPTION"
-\fB6jack\fR runs a command, intercepts calls to common network\-related functions and pass them through a filter as \fBMessagePack\fR serialized objects\.
+\fB6jack\fR runs a command, intercepts calls to common network\-related functions and passes them through a filter as \fBMessagePack\fR serialized objects\.
 .
 .P
 \fB6jack\fR works at application level\. It\'s a simple library that gets preloaded before the actual application\.
@@ -64,6 +64,9 @@ socket(2)
 .
 .IP "\(bu" 4
 write(2)
+.
+.IP "\(bu" 4
+writev(2)
 .
 .IP "" 0
 .
