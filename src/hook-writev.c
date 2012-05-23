@@ -27,10 +27,20 @@ static FilterReplyResult filter_apply(FilterReplyResultBase * const rb,
                                       const struct iovec * * const iov,
                                       int * const iovcnt)
 {
+    int i;
     msgpack_packer * const msgpack_packer = rb->filter->msgpack_packer;
-    filter_before_apply(rb, 0U, "writev",
+    filter_before_apply(rb, 1U, "writev",
                         sa_local, sa_local_len, sa_remote, sa_remote_len);
-
+    
+    msgpack_pack_mstring(msgpack_packer, "data");
+    msgpack_pack_array(msgpack_packer, *iovcnt);
+    
+    for (i = 0; i < *iovcnt; i++) {
+        msgpack_pack_raw(msgpack_packer, (*(iov))[i].iov_len);
+        msgpack_pack_raw_body(msgpack_packer, (*(iov))[i].iov_base,
+                             (*(iov))[i].iov_len);
+    }
+    
     if (filter_send_message(rb->filter) != 0) {
         return FILTER_REPLY_RESULT_ERROR;
     }
