@@ -18,6 +18,7 @@ int hooks_init(void)
     __real_sendto_init();
     __real_socket_init();
     __real_write_init();
+    __real_writev_init();
     
     return 0;
 }
