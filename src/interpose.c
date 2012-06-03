@@ -18,5 +18,6 @@ sixjack_interposers[] __attribute__ ((section("__DATA, __interpose"))) = {
     { INTERPOSE(sendto), sendto },
     { INTERPOSE(socket), socket },
     { INTERPOSE(write), write },
+    { INTERPOSE(writev), writev },
 };
 #endif

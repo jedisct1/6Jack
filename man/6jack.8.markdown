@@ -44,6 +44,7 @@ push a serialized reply to `stdout`.
   * sendto(2)
   * socket(2)
   * write(2)
+  * writev(2)
 
 ## ENVIRONMENT
 
