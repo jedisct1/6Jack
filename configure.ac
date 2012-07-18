@@ -158,7 +158,7 @@ AC_HEADER_ASSERT
 
 AC_ARG_ENABLE(debug,
 [AS_HELP_STRING(--enable-debug,For maintainers only - please do not use)],
-[ if test "x$withval" = "xyes" ; then
+[ if test "x$enableval" = "xyes" ; then
     CFLAGS="$CFLAGS -DDEBUG=1 -g -Werror -Wall -W -Wcast-align -Wbad-function-cast -Wstrict-prototypes -Wwrite-strings -Wreturn-type "
   fi ])
 
