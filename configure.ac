@@ -154,8 +154,6 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([atexit socket strerror])
 
 # Switches
-AC_HEADER_ASSERT
-
 AC_ARG_ENABLE(debug,
 [AS_HELP_STRING(--enable-debug,For maintainers only - please do not use)],
 [ if test "x$enableval" = "xyes" ; then
@@ -163,6 +161,12 @@ AC_ARG_ENABLE(debug,
   fi ])
 
 AC_SUBST([MAINT])
+
+dnl Output
+AH_VERBATIM([NDEBUG], [/* Never ever ignore assertions */
+#ifdef NDEBUG
+#/**/undef/**/ NDEBUG
+#endif])
 
 AC_CONFIG_FILES([Makefile
                  example-filters/Makefile
