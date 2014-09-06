@@ -1,8 +1,12 @@
 language: c
+
 compiler:
  - clang
  - gcc
+ 
 before_script:
+ - sudo apt-get install libmsgpack-dev
  - ./autogen.sh
  - ./configure --disable-dependency-tracking
-script: make check
+ 
+script: make
